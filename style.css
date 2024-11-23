@@ -54,10 +54,13 @@ body {
   height: 16px;
   background-color: #000;
   border-radius: 50% / 60%;
-  right: -30px;
   transform: scale(1.5);
   transform-origin: center;
-  transition: right 3s linear, top 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
+  visibility: visible;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
 }
 
 #note.rotate-note {
