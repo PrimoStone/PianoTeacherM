@@ -56,7 +56,12 @@ body {
   border-radius: 50% / 60%;
   right: -30px;
   transform: scale(1.5);
-  transition: right 3s linear, top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+  transition: right 3s linear, top 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
+}
+
+#note.rotate-note {
+  transform: scale(1.5) rotate(180deg);
 }
 
 #note::after {
@@ -68,6 +73,7 @@ body {
   bottom: 12px;
   left: 90%;
   transform: translateX(-50%);
+  transform-origin: bottom center;
 }
 
 button {

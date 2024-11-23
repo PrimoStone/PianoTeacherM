@@ -32,10 +32,11 @@ function displayNote() {
   currentNote = NOTES[Math.floor(Math.random() * NOTES.length)];
   noteElement = document.getElementById('note');
 
-  // Reset the note position
+  // Reset the note position and rotation
   noteElement.style.transition = 'none';
   noteElement.style.right = '-30px';
   noteElement.style.top = `${NOTE_POSITIONS[currentNote]}px`;
+  noteElement.className = currentNote === 'B' ? 'rotate-note' : '';
 
   // Force a reflow to ensure the note is repositioned before the animation starts
   noteElement.offsetHeight;
@@ -46,7 +47,7 @@ function displayNote() {
 
   // Start moving the note
   requestAnimationFrame(() => {
-    noteElement.style.transition = 'right 3s linear';
+    noteElement.style.transition = 'right 3s linear, top 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
     noteElement.style.right = '300px';
   });
 
