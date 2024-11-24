@@ -221,11 +221,26 @@ function startListening() {
 
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   analyser = audioContext.createAnalyser();
-  analyser.fftSize = 2048;
+  
+  // Adjust FFT size based on device
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  analyser.fftSize = isMobile ? 1024 : 2048;  // Smaller FFT size for mobile
+  
+  // Adjust other analyser settings for better mobile performance
+  analyser.smoothingTimeConstant = isMobile ? 0.6 : 0.8;
+  
   detector = PitchDetector.forFloat32Array(analyser.fftSize);
 
   navigator.mediaDevices
-    .getUserMedia({ audio: true })
+    .getUserMedia({ 
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1,  // Mono audio is sufficient for pitch detection
+        sampleRate: isMobile ? 22050 : 44100  // Lower sample rate for mobile
+      } 
+    })
     .then((stream) => {
       source = audioContext.createMediaStreamSource(stream);
       source.connect(analyser);
@@ -246,16 +261,38 @@ function updatePitch() {
   analyser.getFloatTimeDomainData(buffer);
   const styles = getComputedStyle(document.documentElement);
   const clarityThreshold = parseFloat(styles.getPropertyValue('--pitch-clarity-threshold'));
+  
+  // Add noise floor check
+  const signalStrength = buffer.reduce((sum, value) => sum + Math.abs(value), 0) / buffer.length;
+  if (signalStrength < 0.01) {  // Adjust this threshold as needed
+    if (lastHighlightedKey) {
+      const lastKey = document.getElementById(lastHighlightedKey);
+      if (lastKey) {
+        lastKey.classList.remove('highlighted');
+      }
+      lastHighlightedKey = null;
+    }
+    lastPitch = null;
+    lastPitchTime = 0;
+    if (isListening) {
+      requestAnimationFrame(updatePitch);
+    }
+    return;
+  }
+  
   const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
 
-  // Find the closest note
-  let detectedNote = null;
-  let minDiff = Infinity;
+  // Adjust frequency comparison for mobile
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const frequencyTolerance = isMobile ? 8 : 5;  // Wider tolerance for mobile
 
   if (clarity > clarityThreshold) {
+    let detectedNote = null;
+    let minDiff = Infinity;
+
     for (const [note, freq] of Object.entries(staffModel.frequencies)) {
       const diff = Math.abs(pitch - freq);
-      if (diff < minDiff) {
+      if (diff < minDiff && diff < frequencyTolerance) {  // Add tolerance check
         minDiff = diff;
         detectedNote = note;
       }
