@@ -1,3 +1,32 @@
+:root {
+  /* Staff dimensions */
+  --staff-width: 400px;
+  --staff-height: 200px;
+  --staff-top-margin: 20px;
+  
+  /* Staff line properties */
+  --staff-line-spacing: 24px;
+  --staff-line-height: 1px;
+  --staff-line-color: #666;
+  --staff-total-lines: 6;
+  
+  /* Note properties */
+  --note-width: 24px;
+  --note-height: 16px;
+  --note-scale: 1.5;
+  --note-stem-width: 2px;
+  --note-stem-height: 35px;
+  --note-color: black;
+  --note-position-adjust: 4px;
+  --note-base-multiplier: 0.67;
+  
+  /* Animation properties */
+  --note-animation-duration: 0.8s;
+  --note-success-color: red;
+  --note-success-scale: 2.5;
+  --note-success-blur: 4px;
+}
+
 body {
   font-family: Arial, sans-serif;
   display: flex;
@@ -14,8 +43,8 @@ body {
 
 #staff-container {
   position: relative;
-  width: 400px;
-  height: 200px;
+  width: var(--staff-width);
+  height: var(--staff-height);
   margin: 20px auto;
   overflow: hidden;
   background-color: white;
@@ -25,11 +54,11 @@ body {
 
 #staff {
   position: absolute;
-  top: 20px;
+  top: var(--staff-top-margin);
   left: 0;
   width: 100%;
   height: 100%;
-  padding: 70px 0;
+  padding: 40px 0;
 }
 
 #staff::before {
@@ -38,40 +67,39 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 125px;
+  height: calc(var(--staff-line-spacing) * var(--staff-total-lines));
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
-    transparent 24px,
-    #666 24px,
-    #666 25px
+    transparent var(--staff-line-spacing),
+    var(--staff-line-color) var(--staff-line-spacing),
+    var(--staff-line-color) calc(var(--staff-line-spacing) + var(--staff-line-height))
   );
 }
 
 #note {
   position: absolute;
-  width: 24px;
-  height: 16px;
-  background-color: currentColor;
+  width: var(--note-width);
+  height: var(--note-height);
+  background-color: var(--note-color);
   border-radius: 50% / 60%;
-  transform: scale(1.5);
+  transform: scale(var(--note-scale));
   transform-origin: center;
   visibility: visible;
-  color: black;
   transition: color 0.3s ease;
 }
 
 #note.rotate-note {
-  transform: scale(1.5) rotate(180deg);
+  transform: scale(var(--note-scale)) rotate(180deg);
   transition: transform 0.3s ease;
 }
 
 #note::after {
   content: '';
   position: absolute;
-  width: 2px;
-  height: 35px;
-  background-color: #000;
+  width: var(--note-stem-width);
+  height: var(--note-stem-height);
+  background-color: var(--note-color);
   bottom: 12px;
   left: 90%;
   transform: translateX(-50%);
@@ -82,11 +110,12 @@ body {
   content: '';
   position: absolute;
   width: 120%;
-  height: 2px;
-  background-color: #000;
+  height: var(--note-stem-width);
+  background-color: var(--note-color);
   top: 50%;
   left: -10%;
   display: none;
+  transform: translateY(-50%);
 }
 
 #note.note-C::before {
@@ -94,22 +123,22 @@ body {
 }
 
 #note.success {
-  animation: success-animation 0.8s ease-out forwards;
-  color: red;
+  animation: success-animation var(--note-animation-duration) ease-out forwards;
+  color: var(--note-success-color);
 }
 
 @keyframes success-animation {
   0% {
-    transform: scale(1.5);
+    transform: scale(var(--note-scale));
     filter: blur(0);
     opacity: 1;
-    color: black;
+    color: var(--note-color);
   }
   100% {
-    transform: scale(2.5);
-    filter: blur(4px);
+    transform: scale(var(--note-success-scale));
+    filter: blur(var(--note-success-blur));
     opacity: 0;
-    color: red;
+    color: var(--note-success-color);
   }
 }
 
