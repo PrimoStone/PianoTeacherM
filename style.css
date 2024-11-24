@@ -25,6 +25,10 @@
   --note-success-color: red;
   --note-success-scale: 2.5;
   --note-success-blur: 4px;
+  
+  /* Pitch detection properties */
+  --pitch-stability-threshold: 100ms;
+  --pitch-clarity-threshold: 0.9;
 }
 
 body {

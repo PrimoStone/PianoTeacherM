@@ -1,64 +1,109 @@
 import { PitchDetector } from 'pitchy';
 
-const NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-const NOTE_POSITIONS = {
-  C: 172,  // Adjusted for 200px height
-  D: 160,
-  E: 148,
-  F: 136,
-  G: 124,
-  A: 112,
-  B: 100,
-};
-const NOTE_FREQUENCIES = {
-  C: 261.63,
-  D: 293.66,
-  E: 329.63,
-  F: 349.23,
-  G: 392.0,
-  A: 440.0,
-  B: 493.88,
-};
-const NOTE_TO_KEY_MAP = {
-  'C': 'key-C',
-  'D': 'key-D',
-  'E': 'key-E',
-  'F': 'key-F',
-  'G': 'key-G',
-  'A': 'key-A',
-  'B': 'key-B'
-};
+class StaffModel {
+  constructor() {
+    this.notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    this.frequencies = {
+      C: 261.63,
+      D: 293.66,
+      E: 329.63,
+      F: 349.23,
+      G: 392.00,
+      A: 440.00,
+      B: 493.88,
+    };
+    this.keyMap = {
+      'C': 'key-C',
+      'D': 'key-D',
+      'E': 'key-E',
+      'F': 'key-F',
+      'G': 'key-G',
+      'A': 'key-A',
+      'B': 'key-B'
+    };
+    this.updateNotePositions();
+    window.addEventListener('resize', () => this.updateNotePositions());
+  }
 
+  updateNotePositions() {
+    const staffContainer = document.getElementById('staff-container');
+    const styles = getComputedStyle(document.documentElement);
+    const staffTopMargin = parseInt(styles.getPropertyValue('--staff-top-margin'));
+    const staffLineSpacing = parseInt(styles.getPropertyValue('--staff-line-spacing'));
+    const notePositionAdjust = parseInt(styles.getPropertyValue('--note-position-adjust'));
+    const baseMultiplier = parseFloat(styles.getPropertyValue('--note-base-multiplier'));
+    
+    // Calculate base position (C note) and spacing between notes
+    const basePosition = (staffContainer.clientHeight * baseMultiplier) + notePositionAdjust;
+    const noteSpacing = staffLineSpacing / 2; // Half of staff line spacing
+    
+    this.notePositions = {
+      C: basePosition + staffTopMargin,
+      D: basePosition - noteSpacing + staffTopMargin,
+      E: basePosition - (noteSpacing * 2) + staffTopMargin,
+      F: basePosition - (noteSpacing * 3) + staffTopMargin,
+      G: basePosition - (noteSpacing * 4) + staffTopMargin,
+      A: basePosition - (noteSpacing * 5) + staffTopMargin,
+      B: basePosition - (noteSpacing * 6) + staffTopMargin,
+    };
+  }
+
+  getNotePosition(note) {
+    return this.notePositions[note];
+  }
+
+  getRandomNote(excludeNote = null) {
+    let note;
+    do {
+      note = this.notes[Math.floor(Math.random() * this.notes.length)];
+    } while (note === excludeNote);
+    return note;
+  }
+
+  getNoteFrequency(note) {
+    return this.frequencies[note];
+  }
+
+  getKeyClass(note) {
+    return this.keyMap[note];
+  }
+}
+
+const staffModel = new StaffModel();
 let currentNote = null;
 let audioContext;
 let analyser;
 let detector;
 let isListening = false;
-let noteElement = null;
-let noteTimeout;
+let source = null;
 let lastPitch = null;
 let lastPitchTime = 0;
 let isAnimating = false;
 let animationTimer = null;
 let lastHighlightedKey = null;
-const PITCH_STABILITY_THRESHOLD = 200; // 0.2 seconds in milliseconds
+const PITCH_STABILITY_THRESHOLD = 100; // 0.1 seconds in milliseconds
 
 function displayNote() {
   if (isAnimating) return;
   isAnimating = true;
 
   // Select new note (different from current)
-  let newNote;
-  do {
-    newNote = NOTES[Math.floor(Math.random() * NOTES.length)];
-  } while (newNote === currentNote);
-  currentNote = newNote;
-
-  // Get note element once
-  if (!noteElement) {
-    noteElement = document.getElementById('note');
+  currentNote = staffModel.getRandomNote(currentNote);
+  
+  const noteElement = document.getElementById('note');
+  noteElement.style.visibility = 'visible';
+  noteElement.className = '';
+  
+  // Add class for B note rotation
+  if (currentNote === 'B') {
+    noteElement.classList.add('rotate-note');
   }
-
+  
+  // Add class for C note ledger line
+  if (currentNote === 'C') {
+    noteElement.classList.add('note-C');
+  }
+  
   // Start continuous animation
   startNoteAnimation();
 }
@@ -69,40 +114,25 @@ function startNoteAnimation() {
     clearTimeout(animationTimer);
   }
 
+  const noteElement = document.getElementById('note');
+  
   // Reset note position without transition
   noteElement.style.transition = 'none';
   noteElement.style.right = '-30px';
-  noteElement.style.top = `${NOTE_POSITIONS[currentNote]}px`;
-  noteElement.className = '';  // Clear all classes first
-  
-  // Add rotation for B note
-  if (currentNote === 'B') {
-    noteElement.classList.add('rotate-note');
-  }
-  
-  // Add class for C note to show ledger line
-  if (currentNote === 'C') {
-    noteElement.classList.add('note-C');
-  }
-  
-  noteElement.style.visibility = 'visible';
+  noteElement.style.top = `${staffModel.getNotePosition(currentNote)}px`;
   
   // Force reflow
-  void noteElement.offsetHeight;
-
-  // Single continuous movement
-  noteElement.style.transition = 'right 3s linear';
-  noteElement.style.right = '300px';
+  noteElement.offsetHeight;
   
-  // Update text
-  document.getElementById('feedback').textContent = `Play this note: ${currentNote}`;
-
-  // Set up next cycle
+  // Start animation
+  noteElement.style.transition = 'right 4s linear';
+  noteElement.style.right = '100%';
+  
+  // Set timer for next note
   animationTimer = setTimeout(() => {
-    if (isAnimating) {
-      startNoteAnimation();
-    }
-  }, 3000);
+    isAnimating = false;
+    displayNote();
+  }, 4000);
 }
 
 function startListening() {
@@ -116,7 +146,8 @@ function startListening() {
   navigator.mediaDevices
     .getUserMedia({ audio: true })
     .then((stream) => {
-      audioContext.createMediaStreamSource(stream).connect(analyser);
+      source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
       isListening = true;
       document.getElementById('start-button').textContent = 'Listening...';
       displayNote();
@@ -132,14 +163,16 @@ function startListening() {
 function updatePitch() {
   const buffer = new Float32Array(analyser.fftSize);
   analyser.getFloatTimeDomainData(buffer);
+  const styles = getComputedStyle(document.documentElement);
+  const clarityThreshold = parseFloat(styles.getPropertyValue('--pitch-clarity-threshold'));
   const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
 
   // Find the closest note
   let detectedNote = null;
   let minDiff = Infinity;
 
-  if (clarity > 0.9) {
-    for (const [note, freq] of Object.entries(NOTE_FREQUENCIES)) {
+  if (clarity > clarityThreshold) {
+    for (const [note, freq] of Object.entries(staffModel.frequencies)) {
       const diff = Math.abs(pitch - freq);
       if (diff < minDiff) {
         minDiff = diff;
@@ -188,7 +221,7 @@ function getNoteFromFrequency(frequency) {
   let minDiff = Infinity;
   let closestNote = '';
 
-  for (const [note, noteFreq] of Object.entries(NOTE_FREQUENCIES)) {
+  for (const [note, noteFreq] of Object.entries(staffModel.frequencies)) {
     const diff = Math.abs(frequency - noteFreq);
     if (diff < minDiff) {
       minDiff = diff;
@@ -212,6 +245,7 @@ function checkNote(detectedNote) {
     document.getElementById('feedback').textContent = 'Correct!';
     
     // Add success animation
+    const noteElement = document.getElementById('note');
     noteElement.classList.add('success');
     
     // Wait for animation to complete before showing next note
@@ -235,7 +269,7 @@ function highlightKey(note) {
   }
 
   // Add highlight to new key
-  const keyId = NOTE_TO_KEY_MAP[note];
+  const keyId = staffModel.getKeyClass(note);
   if (keyId) {
     const key = document.getElementById(keyId);
     if (key) {
