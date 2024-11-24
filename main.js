@@ -19,6 +19,15 @@ const NOTE_FREQUENCIES = {
   A: 440.0,
   B: 493.88,
 };
+const NOTE_TO_KEY_MAP = {
+  'C': 'key-C',
+  'D': 'key-D',
+  'E': 'key-E',
+  'F': 'key-F',
+  'G': 'key-G',
+  'A': 'key-A',
+  'B': 'key-B'
+};
 
 let currentNote = null;
 let audioContext;
@@ -31,6 +40,7 @@ let lastPitch = null;
 let lastPitchTime = 0;
 let isAnimating = false;
 let animationTimer = null;
+let lastHighlightedKey = null;
 const PITCH_STABILITY_THRESHOLD = 200; // 0.2 seconds in milliseconds
 
 function displayNote() {
@@ -109,37 +119,53 @@ function startListening() {
 }
 
 function updatePitch() {
-  const float32Array = new Float32Array(analyser.fftSize);
-  analyser.getFloatTimeDomainData(float32Array);
-  const [pitch, clarity] = detector.findPitch(
-    float32Array,
-    audioContext.sampleRate
-  );
+  const buffer = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(buffer);
+  const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
 
-  if (pitch && clarity > 0.9) {
-    // Only consider pitches with high clarity
-    const detectedNote = getNoteFromFrequency(pitch);
-    
-    // Check if this is the same pitch as before
+  // Find the closest note
+  let detectedNote = null;
+  let minDiff = Infinity;
+
+  if (clarity > 0.9) {
+    for (const [note, freq] of Object.entries(NOTE_FREQUENCIES)) {
+      const diff = Math.abs(pitch - freq);
+      if (diff < minDiff) {
+        minDiff = diff;
+        detectedNote = note;
+      }
+    }
+
+    // Update last pitch time for stability check
+    const currentTime = Date.now();
     if (lastPitch === detectedNote) {
-      // If we've sustained this pitch long enough
-      if (Date.now() - lastPitchTime >= PITCH_STABILITY_THRESHOLD) {
+      if (currentTime - lastPitchTime >= PITCH_STABILITY_THRESHOLD) {
         checkNote(detectedNote);
-        document.getElementById(
-          'debug'
-        ).textContent = `Detected: ${detectedNote} (${pitch.toFixed(
-          2
-        )} Hz, Clarity: ${clarity.toFixed(2)})`;
+        highlightKey(detectedNote);  // Only highlight after sustained pitch
       }
     } else {
-      // New pitch detected, reset the timer
       lastPitch = detectedNote;
-      lastPitchTime = Date.now();
+      lastPitchTime = currentTime;
+      // Remove highlight when pitch changes
+      if (lastHighlightedKey) {
+        const lastKey = document.getElementById(lastHighlightedKey);
+        if (lastKey) {
+          lastKey.classList.remove('highlighted');
+        }
+        lastHighlightedKey = null;
+      }
     }
   } else {
-    // No pitch detected, reset
+    // Remove highlight if pitch is unclear
+    if (lastHighlightedKey) {
+      const lastKey = document.getElementById(lastHighlightedKey);
+      if (lastKey) {
+        lastKey.classList.remove('highlighted');
+      }
+      lastHighlightedKey = null;
+    }
     lastPitch = null;
-    document.getElementById('debug').textContent = 'Listening...';
+    lastPitchTime = 0;
   }
 
   if (isListening) {
@@ -181,6 +207,26 @@ function checkNote(detectedNote) {
     }, 1000);
   }
   // No else clause - wrong notes are completely ignored
+}
+
+function highlightKey(note) {
+  // Remove highlight from last key
+  if (lastHighlightedKey) {
+    const lastKey = document.getElementById(lastHighlightedKey);
+    if (lastKey) {
+      lastKey.classList.remove('highlighted');
+    }
+  }
+
+  // Add highlight to new key
+  const keyId = NOTE_TO_KEY_MAP[note];
+  if (keyId) {
+    const key = document.getElementById(keyId);
+    if (key) {
+      key.classList.add('highlighted');
+      lastHighlightedKey = keyId;
+    }
+  }
 }
 
 document
