@@ -21,8 +21,63 @@ class StaffModel {
       'A': 'key-A',
       'B': 'key-B'
     };
+    // Check initial mode state
+    const checkedModeInput = document.querySelector('input[name="mode"]:checked');
+    this.currentMode = checkedModeInput ? checkedModeInput.value : 'easy';
+    console.log('Initial mode:', this.currentMode);
+    this.setupModeListeners();
     this.updateNotePositions();
     window.addEventListener('resize', () => this.updateNotePositions());
+  }
+
+  setupModeListeners() {
+    document.querySelectorAll('input[name="mode"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        console.log('Mode changed to:', e.target.value);
+        this.currentMode = e.target.value;
+        
+        // Remove all highlights first
+        document.querySelectorAll('.white-key, .black-key').forEach(key => {
+          key.classList.remove('learning-highlight');
+          key.classList.remove('highlighted');
+        });
+        
+        // If switching to learning mode, highlight current note
+        if (this.currentMode === 'learning' && currentNote) {
+          const keyId = `key-${currentNote}`;
+          const key = document.getElementById(keyId);
+          if (key) {
+            console.log('Adding learning highlight on mode switch to:', keyId);
+            key.classList.add('learning-highlight');
+          }
+        }
+        
+        // Update note display
+        displayNote();
+      });
+    });
+  }
+
+  updateModeDisplay() {
+    // Clear any existing highlights
+    document.querySelectorAll('.key').forEach(key => {
+      key.classList.remove('learning-highlight');
+    });
+    
+    // Update note name visibility
+    const noteNameElement = document.getElementById('note-name');
+    noteNameElement.classList.toggle('visible', this.currentMode === 'learning');
+    
+    // If in learning mode, highlight the current note's key
+    if (this.currentMode === 'learning' && currentNote) {
+      const keyId = this.getKeyClass(currentNote);
+      const key = document.getElementById(keyId);
+      if (key) {
+        console.log('Adding learning highlight to:', keyId);
+        key.classList.add('learning-highlight');
+      }
+      noteNameElement.textContent = currentNote;
+    }
   }
 
   updateNotePositions() {
@@ -65,7 +120,7 @@ class StaffModel {
   }
 
   getKeyClass(note) {
-    return this.keyMap[note];
+    return `key-${note}`;
   }
 }
 
@@ -89,19 +144,51 @@ function displayNote() {
 
   // Select new note (different from current)
   currentNote = staffModel.getRandomNote(currentNote);
+  console.log('Current note:', currentNote);
+  console.log('Current mode:', staffModel.currentMode);
   
   const noteElement = document.getElementById('note');
   noteElement.style.visibility = 'visible';
-  noteElement.className = '';
+  noteElement.className = '';  // Clear all classes
+  
+  // Add note-specific class
+  noteElement.classList.add(`note-${currentNote}`);
   
   // Add class for B note rotation
   if (currentNote === 'B') {
     noteElement.classList.add('rotate-note');
   }
-  
-  // Add class for C note ledger line
-  if (currentNote === 'C') {
-    noteElement.classList.add('note-C');
+
+  // Update learning mode display
+  if (staffModel.currentMode === 'learning') {
+    console.log('In learning mode');
+    const noteNameElement = document.getElementById('note-name');
+    noteNameElement.textContent = currentNote;
+    noteNameElement.classList.add('visible');
+    
+    // Remove all highlights first
+    document.querySelectorAll('.white-key, .black-key').forEach(key => {
+      key.classList.remove('learning-highlight');
+      key.classList.remove('highlighted');
+    });
+    
+    // Add learning highlight to current note's key
+    const keyId = `key-${currentNote}`;
+    console.log('Looking for key:', keyId);
+    const key = document.getElementById(keyId);
+    console.log('Found key:', key);
+    if (key) {
+      console.log('Adding learning-highlight class');
+      key.classList.add('learning-highlight');
+      console.log('Key classes after:', key.className);
+    }
+  } else {
+    console.log('Not in learning mode');
+    document.getElementById('note-name').classList.remove('visible');
+    document.querySelectorAll('.white-key, .black-key').forEach(key => {
+      key.classList.remove('learning-highlight');
+      key.classList.remove('highlighted');
+    });
   }
   
   // Start continuous animation
@@ -233,34 +320,37 @@ function getNoteFromFrequency(frequency) {
 }
 
 function checkNote(detectedNote) {
-  if (!currentNote || !isAnimating) return;
+  if (!currentNote || !isListening) return;
 
   if (detectedNote === currentNote) {
-    // Stop current animation cycle
-    if (animationTimer) {
-      clearTimeout(animationTimer);
-      animationTimer = null;
-    }
-    
-    document.getElementById('feedback').textContent = 'Correct!';
-    
-    // Add success animation
     const noteElement = document.getElementById('note');
     noteElement.classList.add('success');
+    
+    // Highlight the played key
+    const keyId = `key-${detectedNote}`;
+    const key = document.getElementById(keyId);
+    if (key) {
+      // Remove learning highlight and add regular highlight
+      key.classList.remove('learning-highlight');
+      key.classList.add('highlighted');
+      
+      // Remove highlight after a short delay
+      setTimeout(() => {
+        key.classList.remove('highlighted');
+      }, 300);
+    }
     
     // Wait for animation to complete before showing next note
     noteElement.addEventListener('animationend', function onAnimationEnd() {
       noteElement.removeEventListener('animationend', onAnimationEnd);
-      noteElement.classList.remove('success');
       isAnimating = false;
       displayNote();
     }, { once: true });
   }
-  // No else clause - wrong notes are completely ignored
 }
 
 function highlightKey(note) {
-  // Remove highlight from last key
+  // Remove previous highlight
   if (lastHighlightedKey) {
     const lastKey = document.getElementById(lastHighlightedKey);
     if (lastKey) {
@@ -269,15 +359,29 @@ function highlightKey(note) {
   }
 
   // Add highlight to new key
-  const keyId = staffModel.getKeyClass(note);
-  if (keyId) {
-    const key = document.getElementById(keyId);
-    if (key) {
-      key.classList.add('highlighted');
-      lastHighlightedKey = keyId;
-    }
+  const keyId = `key-${note}`;
+  const key = document.getElementById(keyId);
+  if (key) {
+    key.classList.add('highlighted');
+    lastHighlightedKey = keyId;
+    
+    // Remove highlight after a short delay
+    setTimeout(() => {
+      key.classList.remove('highlighted');
+    }, 300);
   }
 }
+
+function initializePianoKeys() {
+  document.querySelectorAll('.white-key, .black-key').forEach(key => {
+    key.style.cursor = 'pointer';
+    key.style.transition = 'background-color 0.3s ease';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initializePianoKeys();
+});
 
 document
   .getElementById('start-button')

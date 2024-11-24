@@ -35,6 +35,10 @@
   --settings-border-color: #dee2e6;
   --settings-active-color: #4CAF50;
   --settings-inactive-color: #6c757d;
+  
+  /* Learning mode properties */
+  --learning-highlight-color: #3498db;  /* Changed to a more vibrant blue */
+  --note-text-color: #333;
 }
 
 body {
@@ -99,7 +103,19 @@ body {
   transition: color 0.3s ease;
 }
 
-#note.rotate-note {
+#note.note-C::before {
+  content: '';
+  position: absolute;
+  width: 120%;
+  height: var(--note-stem-width);
+  background-color: var(--note-color);
+  top: 50%;
+  left: -10%;
+  display: block;
+  transform: translateY(-50%);
+}
+
+#note.note-B {
   transform: scale(var(--note-scale)) rotate(180deg);
   transition: transform 0.3s ease;
 }
@@ -116,20 +132,9 @@ body {
   transform-origin: bottom center;
 }
 
-#note::before {
-  content: '';
-  position: absolute;
-  width: 120%;
-  height: var(--note-stem-width);
-  background-color: var(--note-color);
-  top: 50%;
-  left: -10%;
-  display: none;
-  transform: translateY(-50%);
-}
-
-#note.note-C::before {
-  display: block;
+#note.rotate-note {
+  transform: scale(var(--note-scale)) rotate(180deg);
+  transition: transform 0.3s ease;
 }
 
 #note.success {
@@ -170,15 +175,15 @@ button {
 }
 
 .piano-keyboard {
-  display: flex;
   position: relative;
+  display: flex;
   width: 100%;
   max-width: 600px;
   height: 200px;
+  margin: 20px auto;
   background-color: #f0f0f0;
-  padding: 10px;
   border-radius: 8px;
-  margin-top: 20px;
+  padding: 10px;
 }
 
 .white-key {
@@ -186,55 +191,59 @@ button {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 0 0 4px 4px;
-  margin-right: 2px;
-}
-
-.white-key:last-child {
-  margin-right: 0;
-}
-
-.white-key.highlighted {
-  background-color: #cccccc;
+  margin: 0 2px;
+  height: 120px;
+  position: relative;
+  z-index: 0;
+  transition: background-color 0.3s ease;
 }
 
 .black-keys {
   position: absolute;
-  top: 0;
+  top: 10px;
   left: 0;
-  width: 100%;
-  height: 60%;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .black-key {
-  position: absolute;
-  width: 8%;
-  height: 100%;
+  pointer-events: auto;
   background-color: black;
+  width: 30px;
+  height: 80px;
+  margin: 0;
   border-radius: 0 0 4px 4px;
+  position: absolute;
+  transition: background-color 0.3s ease;
+}
+
+.white-key.highlighted {
+  background-color: #cccccc !important;
 }
 
 .black-key.highlighted {
-  background-color: #666666;
+  background-color: #666666 !important;
 }
 
-#key-Csharp {
-  left: calc(14.28% * 0.8);
+.white-key.learning-highlight {
+  background-color: #3498db !important;
 }
 
-#key-Dsharp {
-  left: calc(14.28% * 1.8);
+.black-key.learning-highlight {
+  background-color: #2980b9 !important;
 }
 
-#key-Fsharp {
-  left: calc(14.28% * 3.7);
-}
+#key-Csharp { left: 11%; }
+#key-Dsharp { left: 25%; }
+#key-Fsharp { left: 53%; }
+#key-Gsharp { left: 67%; }
+#key-Asharp { left: 81%; }
 
-#key-Gsharp {
-  left: calc(14.28% * 4.6);
-}
-
-#key-Asharp {
-  left: calc(14.28% * 5.6);
+.white-key:active, .black-key:active {
+  background-color: #ddd;
 }
 
 .detected {
@@ -243,6 +252,22 @@ button {
 
 .matched {
   background-color: #ff6666 !important;
+}
+
+#note-name {
+  position: absolute;
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--note-text-color);
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#note-name.visible {
+  opacity: 1;
 }
 
 #settings-container {
