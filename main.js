@@ -2,13 +2,13 @@ import { PitchDetector } from 'pitchy';
 
 const NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const NOTE_POSITIONS = {
-  C: 142,
-  D: 130,
-  E: 118,
-  F: 106,
-  G: 94,
-  A: 82,
-  B: 70,
+  C: 172,  // Adjusted for 200px height
+  D: 160,
+  E: 148,
+  F: 136,
+  G: 124,
+  A: 112,
+  B: 100,
 };
 const NOTE_FREQUENCIES = {
   C: 261.63,
