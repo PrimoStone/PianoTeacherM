@@ -30,6 +30,9 @@ class StaffModel {
     this.currentMode = checkedModeInput ? checkedModeInput.value : 'easy';
     console.log('Initial mode:', this.currentMode);
     
+    // Set initial mode class
+    document.getElementById('app').className = `${this.currentMode}-mode`;
+    
     // Initial setup
     this.setupModeListeners();
     this.updateNotePositions();
@@ -41,6 +44,9 @@ class StaffModel {
       radio.addEventListener('change', (e) => {
         console.log('Mode changed to:', e.target.value);
         this.currentMode = e.target.value;
+        
+        // Update mode class
+        document.getElementById('app').className = `${this.currentMode}-mode`;
         
         // Remove all highlights first
         document.querySelectorAll('.white-key, .black-key').forEach(key => {
