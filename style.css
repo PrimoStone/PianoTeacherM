@@ -19,6 +19,7 @@
   --note-color: black;
   --note-position-adjust: 4px;
   --note-base-multiplier: 0.67;
+  --note-vertical-adjust: -2px;
   
   /* Animation properties */
   --note-animation-duration: 0.8s;
@@ -104,6 +105,7 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 10;
+  margin-top: var(--note-vertical-adjust);
 }
 
 /* Default stem for all notes */
