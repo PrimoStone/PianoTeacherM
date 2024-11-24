@@ -21,10 +21,16 @@ class StaffModel {
       'A': 'key-A',
       'B': 'key-B'
     };
+    
+    // Initialize note positions
+    this.notePositions = {};
+    
     // Check initial mode state
     const checkedModeInput = document.querySelector('input[name="mode"]:checked');
     this.currentMode = checkedModeInput ? checkedModeInput.value : 'easy';
     console.log('Initial mode:', this.currentMode);
+    
+    // Initial setup
     this.setupModeListeners();
     this.updateNotePositions();
     window.addEventListener('resize', () => this.updateNotePositions());
@@ -92,18 +98,24 @@ class StaffModel {
     const basePosition = (staffContainer.clientHeight * baseMultiplier) + notePositionAdjust;
     const noteSpacing = staffLineSpacing / 2; // Half of staff line spacing
     
+    // Update positions for each note, moved down by one line (noteSpacing * 2)
     this.notePositions = {
-      C: basePosition + staffTopMargin,
-      D: basePosition - noteSpacing + staffTopMargin,
-      E: basePosition - (noteSpacing * 2) + staffTopMargin,
-      F: basePosition - (noteSpacing * 3) + staffTopMargin,
-      G: basePosition - (noteSpacing * 4) + staffTopMargin,
-      A: basePosition - (noteSpacing * 5) + staffTopMargin,
-      B: basePosition - (noteSpacing * 6) + staffTopMargin,
+      'C': basePosition + (noteSpacing * 2),
+      'D': basePosition + noteSpacing,
+      'E': basePosition,
+      'F': basePosition - noteSpacing,
+      'G': basePosition - (noteSpacing * 2),
+      'A': basePosition - (noteSpacing * 3),
+      'B': basePosition - (noteSpacing * 4)
     };
+    
+    console.log('Updated note positions:', this.notePositions);
   }
 
   getNotePosition(note) {
+    if (!this.notePositions[note]) {
+      this.updateNotePositions();
+    }
     return this.notePositions[note];
   }
 
@@ -144,54 +156,38 @@ function displayNote() {
 
   // Select new note (different from current)
   currentNote = staffModel.getRandomNote(currentNote);
-  console.log('Current note:', currentNote);
-  console.log('Current mode:', staffModel.currentMode);
+  console.log('Displaying note:', currentNote);
   
   const noteElement = document.getElementById('note');
+  
+  // Reset note state
+  noteElement.style.transition = 'none';
+  noteElement.style.right = '-30px';
   noteElement.style.visibility = 'visible';
-  noteElement.className = '';  // Clear all classes
+  noteElement.style.display = 'block';
+  noteElement.className = ''; // Clear classes
+  noteElement.innerHTML = ''; // Clear any existing elements
   
-  // Add note-specific class
+  // Get and set note position
+  const notePosition = staffModel.getNotePosition(currentNote);
+  console.log('Note position:', notePosition);
+  noteElement.style.top = `${notePosition}px`;
+  
+  // Add note class
   noteElement.classList.add(`note-${currentNote}`);
+  noteElement.setAttribute('data-note', currentNote);
   
-  // Add class for B note rotation
-  if (currentNote === 'B') {
-    noteElement.classList.add('rotate-note');
-  }
-
-  // Update learning mode display
-  if (staffModel.currentMode === 'learning') {
-    console.log('In learning mode');
-    const noteNameElement = document.getElementById('note-name');
-    noteNameElement.textContent = currentNote;
-    noteNameElement.classList.add('visible');
-    
-    // Remove all highlights first
-    document.querySelectorAll('.white-key, .black-key').forEach(key => {
-      key.classList.remove('learning-highlight');
-      key.classList.remove('highlighted');
-    });
-    
-    // Add learning highlight to current note's key
-    const keyId = `key-${currentNote}`;
-    console.log('Looking for key:', keyId);
-    const key = document.getElementById(keyId);
-    console.log('Found key:', key);
-    if (key) {
-      console.log('Adding learning-highlight class');
-      key.classList.add('learning-highlight');
-      console.log('Key classes after:', key.className);
-    }
-  } else {
-    console.log('Not in learning mode');
-    document.getElementById('note-name').classList.remove('visible');
-    document.querySelectorAll('.white-key, .black-key').forEach(key => {
-      key.classList.remove('learning-highlight');
-      key.classList.remove('highlighted');
-    });
+  // Add ledger line for C note
+  if (currentNote === 'C') {
+    const ledgerLine = document.createElement('div');
+    ledgerLine.className = 'ledger-line';
+    noteElement.appendChild(ledgerLine);
   }
   
-  // Start continuous animation
+  // Force reflow
+  noteElement.offsetHeight;
+  
+  // Start animation
   startNoteAnimation();
 }
 
@@ -202,14 +198,6 @@ function startNoteAnimation() {
   }
 
   const noteElement = document.getElementById('note');
-  
-  // Reset note position without transition
-  noteElement.style.transition = 'none';
-  noteElement.style.right = '-30px';
-  noteElement.style.top = `${staffModel.getNotePosition(currentNote)}px`;
-  
-  // Force reflow
-  noteElement.offsetHeight;
   
   // Start animation
   noteElement.style.transition = 'right 4s linear';
