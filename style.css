@@ -29,6 +29,12 @@
   /* Pitch detection properties */
   --pitch-stability-threshold: 100ms;
   --pitch-clarity-threshold: 0.9;
+  
+  /* Settings properties */
+  --settings-bg-color: #f8f9fa;
+  --settings-border-color: #dee2e6;
+  --settings-active-color: #4CAF50;
+  --settings-inactive-color: #6c757d;
 }
 
 body {
@@ -237,4 +243,69 @@ button {
 
 .matched {
   background-color: #ff6666 !important;
+}
+
+#settings-container {
+  width: var(--staff-width);
+  margin: 0 auto 20px;
+  padding: 15px;
+  background-color: var(--settings-bg-color);
+  border-radius: 8px;
+  border: 1px solid var(--settings-border-color);
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.mode-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.mode-switch input {
+  display: none;
+}
+
+.mode-switch .switch-label {
+  font-size: 14px;
+  color: var(--settings-inactive-color);
+  user-select: none;
+}
+
+.mode-switch input:checked + .switch-label {
+  color: var(--settings-active-color);
+  font-weight: 500;
+}
+
+.mode-switch .switch-slider {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: var(--settings-inactive-color);
+  border-radius: 20px;
+  transition: background-color 0.3s;
+}
+
+.mode-switch input:checked + .switch-label + .switch-slider {
+  background-color: var(--settings-active-color);
+}
+
+.mode-switch .switch-slider:before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.mode-switch input:checked + .switch-label + .switch-slider:before {
+  transform: translateX(20px);
 }
