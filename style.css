@@ -57,14 +57,11 @@ body {
   transform: scale(1.5);
   transform-origin: center;
   visibility: visible;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  -webkit-transform-style: preserve-3d;
-  transform-style: preserve-3d;
 }
 
 #note.rotate-note {
   transform: scale(1.5) rotate(180deg);
+  transition: transform 0.3s ease;
 }
 
 #note::after {

@@ -20,53 +20,67 @@ const NOTE_FREQUENCIES = {
   B: 493.88,
 };
 
-let currentNote;
+let currentNote = null;
 let audioContext;
 let analyser;
 let detector;
 let isListening = false;
-let noteElement;
+let noteElement = null;
 let noteTimeout;
 let lastPitch = null;
 let lastPitchTime = 0;
+let isAnimating = false;
+let animationTimer = null;
 const PITCH_STABILITY_THRESHOLD = 200; // 0.2 seconds in milliseconds
 
 function displayNote() {
-  // Hide note immediately
-  noteElement = document.getElementById('note');
-  noteElement.style.visibility = 'hidden';
+  if (isAnimating) return;
+  isAnimating = true;
 
-  // Select new note
-  currentNote = NOTES[Math.floor(Math.random() * NOTES.length)];
+  // Select new note (different from current)
+  let newNote;
+  do {
+    newNote = NOTES[Math.floor(Math.random() * NOTES.length)];
+  } while (newNote === currentNote);
+  currentNote = newNote;
 
-  // Set up the note's initial position while hidden
-  noteElement.style.cssText = `
-    visibility: hidden;
-    transition: none;
-    right: -30px;
-    top: ${NOTE_POSITIONS[currentNote]}px;
-  `;
+  // Get note element once
+  if (!noteElement) {
+    noteElement = document.getElementById('note');
+  }
+
+  // Start continuous animation
+  startNoteAnimation();
+}
+
+function startNoteAnimation() {
+  // Clear any existing animation timer
+  if (animationTimer) {
+    clearTimeout(animationTimer);
+  }
+
+  // Reset note position without transition
+  noteElement.style.transition = 'none';
+  noteElement.style.right = '-30px';
+  noteElement.style.top = `${NOTE_POSITIONS[currentNote]}px`;
   noteElement.className = currentNote === 'B' ? 'rotate-note' : '';
-
+  noteElement.style.visibility = 'visible';
+  
   // Force reflow
   void noteElement.offsetHeight;
 
-  // Update feedback text
-  document.getElementById(
-    'feedback'
-  ).textContent = `Play this note: ${currentNote}`;
+  // Single continuous movement
+  noteElement.style.transition = 'right 3s linear';
+  noteElement.style.right = '300px';
+  
+  // Update text
+  document.getElementById('feedback').textContent = `Play this note: ${currentNote}`;
 
-  // Show note and start animation in the next frame
-  requestAnimationFrame(() => {
-    noteElement.style.visibility = 'visible';
-    noteElement.style.transition = 'right 3s linear';
-    noteElement.style.right = '300px';
-  });
-
-  // Set timeout to choose next note if no match
-  clearTimeout(noteTimeout);
-  noteTimeout = setTimeout(() => {
-    displayNote();
+  // Set up next cycle
+  animationTimer = setTimeout(() => {
+    if (isAnimating) {
+      startNoteAnimation();
+    }
   }, 3000);
 }
 
@@ -149,16 +163,24 @@ function getNoteFromFrequency(frequency) {
 }
 
 function checkNote(detectedNote) {
-  const feedback = document.getElementById('feedback');
+  if (!currentNote || !isAnimating) return;
+
   if (detectedNote === currentNote) {
-    feedback.textContent = 'Correct! Well done!';
-    clearTimeout(noteTimeout);
+    // Stop current animation cycle
+    if (animationTimer) {
+      clearTimeout(animationTimer);
+      animationTimer = null;
+    }
+    
+    document.getElementById('feedback').textContent = 'Correct!';
+    isAnimating = false;
+    
+    // Wait a moment before showing next note
     setTimeout(() => {
       displayNote();
     }, 1000);
-  } else {
-    feedback.textContent = `Play this note: ${currentNote}`;
   }
+  // No else clause - wrong notes are completely ignored
 }
 
 document
