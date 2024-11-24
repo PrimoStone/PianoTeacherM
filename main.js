@@ -210,12 +210,17 @@ function checkNote(detectedNote) {
     }
     
     document.getElementById('feedback').textContent = 'Correct!';
-    isAnimating = false;
     
-    // Wait a moment before showing next note
-    setTimeout(() => {
+    // Add success animation
+    noteElement.classList.add('success');
+    
+    // Wait for animation to complete before showing next note
+    noteElement.addEventListener('animationend', function onAnimationEnd() {
+      noteElement.removeEventListener('animationend', onAnimationEnd);
+      noteElement.classList.remove('success');
+      isAnimating = false;
       displayNote();
-    }, 1000);
+    }, { once: true });
   }
   // No else clause - wrong notes are completely ignored
 }
