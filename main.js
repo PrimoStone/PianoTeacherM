@@ -73,7 +73,18 @@ function startNoteAnimation() {
   noteElement.style.transition = 'none';
   noteElement.style.right = '-30px';
   noteElement.style.top = `${NOTE_POSITIONS[currentNote]}px`;
-  noteElement.className = currentNote === 'B' ? 'rotate-note' : '';
+  noteElement.className = '';  // Clear all classes first
+  
+  // Add rotation for B note
+  if (currentNote === 'B') {
+    noteElement.classList.add('rotate-note');
+  }
+  
+  // Add class for C note to show ledger line
+  if (currentNote === 'C') {
+    noteElement.classList.add('note-C');
+  }
+  
   noteElement.style.visibility = 'visible';
   
   // Force reflow

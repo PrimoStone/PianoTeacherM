@@ -76,6 +76,21 @@ body {
   transform-origin: bottom center;
 }
 
+#note::before {
+  content: '';
+  position: absolute;
+  width: 120%;
+  height: 2px;
+  background-color: #000;
+  top: 50%;
+  left: -10%;
+  display: none;
+}
+
+#note.note-C::before {
+  display: block;
+}
+
 button {
   margin-top: 20px;
   font-size: 18px;
@@ -117,6 +132,10 @@ button {
   margin-right: 0;
 }
 
+.white-key.highlighted {
+  background-color: #cccccc;
+}
+
 .black-keys {
   position: absolute;
   top: 0;
@@ -131,6 +150,10 @@ button {
   height: 100%;
   background-color: black;
   border-radius: 0 0 4px 4px;
+}
+
+.black-key.highlighted {
+  background-color: #666666;
 }
 
 #key-Csharp {
