@@ -138,6 +138,27 @@ let animationTimer = null;
 let lastHighlightedKey = null;
 const PITCH_STABILITY_THRESHOLD = 100; // 0.1 seconds in milliseconds
 
+const NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const FREQUENCIES = {
+  'C': 261.63,
+  'D': 293.66,
+  'E': 329.63,
+  'F': 349.23,
+  'G': 392.00,
+  'A': 440.00,
+  'B': 493.88
+};
+
+const FREQUENCY_RANGES = {
+  'C': { min: 255, max: 275 },  // Wider range for C
+  'D': { min: 288, max: 305 },
+  'E': { min: 324, max: 340 },
+  'F': { min: 344, max: 360 },
+  'G': { min: 387, max: 405 },
+  'A': { min: 435, max: 450 },
+  'B': { min: 485, max: 505 }   // Wider range for B
+};
+
 function displayNote() {
   if (isAnimating) return;
   isAnimating = true;
@@ -228,16 +249,15 @@ function startListening() {
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   analyser = audioContext.createAnalyser();
   
-  // Check if device is mobile
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   console.log('Is mobile device:', isMobile);
   
-  // Much smaller FFT size for mobile
-  analyser.fftSize = isMobile ? 256 : 2048;
+  // Even smaller FFT size for faster processing
+  analyser.fftSize = isMobile ? 128 : 2048;
   console.log('FFT size set to:', analyser.fftSize);
   
-  // Increase smoothing for mobile
-  analyser.smoothingTimeConstant = isMobile ? 0.9 : 0.8;
+  // Adjust smoothing for faster response
+  analyser.smoothingTimeConstant = isMobile ? 0.5 : 0.8;
   console.log('Smoothing constant:', analyser.smoothingTimeConstant);
   
   detector = PitchDetector.forFloat32Array(analyser.fftSize);
@@ -249,7 +269,8 @@ function startListening() {
         noiseSuppression: true,
         autoGainControl: true,
         channelCount: 1,
-        sampleRate: isMobile ? 22050 : 44100 // Lower sample rate for mobile
+        sampleRate: isMobile ? 22050 : 44100,
+        latency: 0.01  // Request low latency
       } 
     })
     .then((stream) => {
@@ -272,10 +293,9 @@ function updatePitch() {
   analyser.getFloatTimeDomainData(buffer);
   const styles = getComputedStyle(document.documentElement);
   
-  // Much more lenient threshold for mobile
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const baseThreshold = parseFloat(styles.getPropertyValue('--pitch-clarity-threshold'));
-  const clarityThreshold = isMobile ? baseThreshold * 0.4 : baseThreshold; // 40% of normal threshold for mobile
+  const clarityThreshold = isMobile ? baseThreshold * 0.3 : baseThreshold; // Even more lenient
   
   const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
 
@@ -283,24 +303,21 @@ function updatePitch() {
   if (clarity > clarityThreshold) {
     console.log(`Pitch: ${pitch.toFixed(1)} Hz, Clarity: ${clarity.toFixed(2)}, Threshold: ${clarityThreshold.toFixed(2)}`);
   }
-  
-  // Find the closest note with wider frequency tolerance for mobile
+
   let detectedNote = null;
-  let minDiff = Infinity;
-  const frequencyTolerance = isMobile ? 30 : 15; // Wider tolerance for mobile
 
   if (clarity > clarityThreshold) {
-    for (const [note, freq] of Object.entries(staffModel.frequencies)) {
-      const diff = Math.abs(pitch - freq);
-      if (diff < minDiff && diff < frequencyTolerance) { // Only accept frequencies within tolerance
-        minDiff = diff;
+    // Use frequency ranges for note detection
+    for (const [note, range] of Object.entries(FREQUENCY_RANGES)) {
+      if (pitch >= range.min && pitch <= range.max) {
         detectedNote = note;
+        break;
       }
     }
 
     // Update last pitch time for stability check
     const currentTime = Date.now();
-    const stabilityThreshold = isMobile ? 50 : PITCH_STABILITY_THRESHOLD; // Faster response on mobile
+    const stabilityThreshold = isMobile ? 30 : PITCH_STABILITY_THRESHOLD; // Even faster response
     
     if (lastPitch === detectedNote) {
       if (currentTime - lastPitchTime >= stabilityThreshold) {
@@ -340,7 +357,7 @@ function getNoteFromFrequency(frequency) {
   let minDiff = Infinity;
   let closestNote = '';
 
-  for (const [note, noteFreq] of Object.entries(staffModel.frequencies)) {
+  for (const [note, noteFreq] of Object.entries(FREQUENCIES)) {
     const diff = Math.abs(frequency - noteFreq);
     if (diff < minDiff) {
       minDiff = diff;
