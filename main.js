@@ -252,12 +252,12 @@ function startListening() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   console.log('Is mobile device:', isMobile);
   
-  // Even smaller FFT size for faster processing
-  analyser.fftSize = isMobile ? 128 : 2048;
+  // Optimize FFT size for mobile
+  analyser.fftSize = isMobile ? 256 : 2048;
   console.log('FFT size set to:', analyser.fftSize);
   
-  // Adjust smoothing for faster response
-  analyser.smoothingTimeConstant = isMobile ? 0.5 : 0.8;
+  // Moderate smoothing for better accuracy
+  analyser.smoothingTimeConstant = isMobile ? 0.7 : 0.8;
   console.log('Smoothing constant:', analyser.smoothingTimeConstant);
   
   detector = PitchDetector.forFloat32Array(analyser.fftSize);
@@ -269,8 +269,8 @@ function startListening() {
         noiseSuppression: true,
         autoGainControl: true,
         channelCount: 1,
-        sampleRate: isMobile ? 22050 : 44100,
-        latency: 0.01  // Request low latency
+        sampleRate: isMobile ? 44100 : 44100, // Keep consistent sample rate
+        latency: 0.01
       } 
     })
     .then((stream) => {
@@ -295,7 +295,7 @@ function updatePitch() {
   
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const baseThreshold = parseFloat(styles.getPropertyValue('--pitch-clarity-threshold'));
-  const clarityThreshold = isMobile ? baseThreshold * 0.3 : baseThreshold; // Even more lenient
+  const clarityThreshold = isMobile ? baseThreshold * 0.5 : baseThreshold; // Moderate threshold
   
   const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
 
@@ -305,19 +305,20 @@ function updatePitch() {
   }
 
   let detectedNote = null;
+  let minDiff = Infinity;
+  const frequencyTolerance = isMobile ? 25 : 15; // Moderate tolerance for mobile
 
   if (clarity > clarityThreshold) {
-    // Use frequency ranges for note detection
-    for (const [note, range] of Object.entries(FREQUENCY_RANGES)) {
-      if (pitch >= range.min && pitch <= range.max) {
+    for (const [note, freq] of Object.entries(staffModel.frequencies)) {
+      const diff = Math.abs(pitch - freq);
+      if (diff < minDiff && diff < frequencyTolerance) {
+        minDiff = diff;
         detectedNote = note;
-        break;
       }
     }
 
-    // Update last pitch time for stability check
     const currentTime = Date.now();
-    const stabilityThreshold = isMobile ? 30 : PITCH_STABILITY_THRESHOLD; // Even faster response
+    const stabilityThreshold = isMobile ? 40 : PITCH_STABILITY_THRESHOLD;
     
     if (lastPitch === detectedNote) {
       if (currentTime - lastPitchTime >= stabilityThreshold) {
@@ -335,17 +336,6 @@ function updatePitch() {
         lastHighlightedKey = null;
       }
     }
-  } else {
-    // Remove highlight if pitch is unclear
-    if (lastHighlightedKey) {
-      const lastKey = document.getElementById(lastHighlightedKey);
-      if (lastKey) {
-        lastKey.classList.remove('highlighted');
-      }
-      lastHighlightedKey = null;
-    }
-    lastPitch = null;
-    lastPitchTime = 0;
   }
 
   if (isListening) {
