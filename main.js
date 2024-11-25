@@ -232,9 +232,13 @@ function startListening() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   console.log('Is mobile device:', isMobile);
   
-  // Adjust FFT size based on device
-  analyser.fftSize = isMobile ? 512 : 2048;
+  // Much smaller FFT size for mobile
+  analyser.fftSize = isMobile ? 256 : 2048;
   console.log('FFT size set to:', analyser.fftSize);
+  
+  // Increase smoothing for mobile
+  analyser.smoothingTimeConstant = isMobile ? 0.9 : 0.8;
+  console.log('Smoothing constant:', analyser.smoothingTimeConstant);
   
   detector = PitchDetector.forFloat32Array(analyser.fftSize);
 
@@ -268,10 +272,10 @@ function updatePitch() {
   analyser.getFloatTimeDomainData(buffer);
   const styles = getComputedStyle(document.documentElement);
   
-  // Adjust clarity threshold based on device
+  // Much more lenient threshold for mobile
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const baseThreshold = parseFloat(styles.getPropertyValue('--pitch-clarity-threshold'));
-  const clarityThreshold = isMobile ? baseThreshold * 0.7 : baseThreshold; // More lenient threshold for mobile
+  const clarityThreshold = isMobile ? baseThreshold * 0.4 : baseThreshold; // 40% of normal threshold for mobile
   
   const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
 
@@ -280,14 +284,15 @@ function updatePitch() {
     console.log(`Pitch: ${pitch.toFixed(1)} Hz, Clarity: ${clarity.toFixed(2)}, Threshold: ${clarityThreshold.toFixed(2)}`);
   }
   
-  // Find the closest note
+  // Find the closest note with wider frequency tolerance for mobile
   let detectedNote = null;
   let minDiff = Infinity;
+  const frequencyTolerance = isMobile ? 30 : 15; // Wider tolerance for mobile
 
   if (clarity > clarityThreshold) {
     for (const [note, freq] of Object.entries(staffModel.frequencies)) {
       const diff = Math.abs(pitch - freq);
-      if (diff < minDiff) {
+      if (diff < minDiff && diff < frequencyTolerance) { // Only accept frequencies within tolerance
         minDiff = diff;
         detectedNote = note;
       }
@@ -295,15 +300,16 @@ function updatePitch() {
 
     // Update last pitch time for stability check
     const currentTime = Date.now();
+    const stabilityThreshold = isMobile ? 50 : PITCH_STABILITY_THRESHOLD; // Faster response on mobile
+    
     if (lastPitch === detectedNote) {
-      if (currentTime - lastPitchTime >= PITCH_STABILITY_THRESHOLD) {
+      if (currentTime - lastPitchTime >= stabilityThreshold) {
         checkNote(detectedNote);
-        highlightKey(detectedNote);  // Only highlight after sustained pitch
+        highlightKey(detectedNote);
       }
     } else {
       lastPitch = detectedNote;
       lastPitchTime = currentTime;
-      // Remove highlight when pitch changes
       if (lastHighlightedKey) {
         const lastKey = document.getElementById(lastHighlightedKey);
         if (lastKey) {
