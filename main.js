@@ -252,25 +252,22 @@ function startListening() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   console.log('Is mobile device:', isMobile);
   
-  // Optimize FFT size for mobile
-  analyser.fftSize = isMobile ? 256 : 2048;
+  // Much smaller FFT size for mobile
+  analyser.fftSize = isMobile ? 64 : 2048;
   console.log('FFT size set to:', analyser.fftSize);
   
-  // Moderate smoothing for better accuracy
-  analyser.smoothingTimeConstant = isMobile ? 0.7 : 0.8;
-  console.log('Smoothing constant:', analyser.smoothingTimeConstant);
+  // Simple smoothing
+  analyser.smoothingTimeConstant = 0.8;
   
   detector = PitchDetector.forFloat32Array(analyser.fftSize);
 
   navigator.mediaDevices
     .getUserMedia({ 
       audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-        channelCount: 1,
-        sampleRate: isMobile ? 44100 : 44100, // Keep consistent sample rate
-        latency: 0.01
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+        channelCount: 1
       } 
     })
     .then((stream) => {
@@ -295,46 +292,30 @@ function updatePitch() {
   
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const baseThreshold = parseFloat(styles.getPropertyValue('--pitch-clarity-threshold'));
-  const clarityThreshold = isMobile ? baseThreshold * 0.5 : baseThreshold; // Moderate threshold
+  const clarityThreshold = isMobile ? 0.75 : baseThreshold;
   
   const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
 
-  // Debug logging for pitch detection
+  // Debug logging
   if (clarity > clarityThreshold) {
-    console.log(`Pitch: ${pitch.toFixed(1)} Hz, Clarity: ${clarity.toFixed(2)}, Threshold: ${clarityThreshold.toFixed(2)}`);
+    console.log(`Pitch: ${pitch.toFixed(1)} Hz, Clarity: ${clarity.toFixed(2)}`);
   }
 
   let detectedNote = null;
   let minDiff = Infinity;
-  const frequencyTolerance = isMobile ? 25 : 15; // Moderate tolerance for mobile
 
   if (clarity > clarityThreshold) {
     for (const [note, freq] of Object.entries(staffModel.frequencies)) {
       const diff = Math.abs(pitch - freq);
-      if (diff < minDiff && diff < frequencyTolerance) {
+      if (diff < minDiff) {
         minDiff = diff;
         detectedNote = note;
       }
     }
 
-    const currentTime = Date.now();
-    const stabilityThreshold = isMobile ? 40 : PITCH_STABILITY_THRESHOLD;
-    
-    if (lastPitch === detectedNote) {
-      if (currentTime - lastPitchTime >= stabilityThreshold) {
-        checkNote(detectedNote);
-        highlightKey(detectedNote);
-      }
-    } else {
-      lastPitch = detectedNote;
-      lastPitchTime = currentTime;
-      if (lastHighlightedKey) {
-        const lastKey = document.getElementById(lastHighlightedKey);
-        if (lastKey) {
-          lastKey.classList.remove('highlighted');
-        }
-        lastHighlightedKey = null;
-      }
+    if (detectedNote) {
+      checkNote(detectedNote);
+      highlightKey(detectedNote);
     }
   }
 
