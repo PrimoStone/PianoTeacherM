@@ -227,11 +227,27 @@ function startListening() {
 
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   analyser = audioContext.createAnalyser();
-  analyser.fftSize = 2048;
+  
+  // Check if device is mobile
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  console.log('Is mobile device:', isMobile);
+  
+  // Adjust FFT size based on device
+  analyser.fftSize = isMobile ? 512 : 2048;
+  console.log('FFT size set to:', analyser.fftSize);
+  
   detector = PitchDetector.forFloat32Array(analyser.fftSize);
 
   navigator.mediaDevices
-    .getUserMedia({ audio: true })
+    .getUserMedia({ 
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1,
+        sampleRate: isMobile ? 22050 : 44100 // Lower sample rate for mobile
+      } 
+    })
     .then((stream) => {
       source = audioContext.createMediaStreamSource(stream);
       source.connect(analyser);
@@ -251,9 +267,19 @@ function updatePitch() {
   const buffer = new Float32Array(analyser.fftSize);
   analyser.getFloatTimeDomainData(buffer);
   const styles = getComputedStyle(document.documentElement);
-  const clarityThreshold = parseFloat(styles.getPropertyValue('--pitch-clarity-threshold'));
+  
+  // Adjust clarity threshold based on device
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const baseThreshold = parseFloat(styles.getPropertyValue('--pitch-clarity-threshold'));
+  const clarityThreshold = isMobile ? baseThreshold * 0.7 : baseThreshold; // More lenient threshold for mobile
+  
   const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
 
+  // Debug logging for pitch detection
+  if (clarity > clarityThreshold) {
+    console.log(`Pitch: ${pitch.toFixed(1)} Hz, Clarity: ${clarity.toFixed(2)}, Threshold: ${clarityThreshold.toFixed(2)}`);
+  }
+  
   // Find the closest note
   let detectedNote = null;
   let minDiff = Infinity;
