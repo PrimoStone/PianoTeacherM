@@ -1,18 +1,110 @@
-Here's a summary of what we did to fix the mobile pitch detection:
+# Audio Processing Solution Knowledge Base
 
-Key Solutions:
-Fixed sample rate mismatch by getting system capabilities first
-Reduced FFT size to 256 for mobile (balanced speed vs accuracy)
-Added controlled processing intervals (50ms) to prevent gaps
-Optimized smoothing constant (0.4) for faster response on mobile
-Performance Improvements:
-Removed unnecessary audio processing (echo cancellation, noise suppression)
-Simplified the detection pipeline
-Implemented more efficient processing loop
-Better error handling and logging
-The app should now provide:
+## Mobile Audio Processing Challenges & Solutions
 
-Consistent pitch detection across devices
-Lower latency
-More reliable note recognition
-Better mobile performance
+### Challenge 1: Sample Rate Mismatch
+**Problem:** Different devices have different native sample rates, causing audio context creation failures.
+**Solution:** 
+- Get system audio capabilities first
+- Create AudioContext without forcing sample rate
+- Use native sample rate from the system
+
+### Challenge 2: Processing Latency
+**Problem:** High latency in note detection on mobile devices.
+**Solution:**
+- Reduced FFT size to 256 for mobile (from 2048)
+- Implemented 50ms processing intervals
+- Disabled unnecessary audio processing
+- Set interactive latency hint
+
+### Challenge 3: Detection Gaps
+**Problem:** Inconsistent detection with large gaps between recognitions.
+**Solution:**
+- Reduced smoothing constant to 0.4 for faster response
+- Implemented controlled processing intervals
+- Optimized the detection pipeline
+- Added better error handling
+
+## Optimal Configuration
+
+### Mobile Devices
+```javascript
+analyser.fftSize = 256;
+analyser.smoothingTimeConstant = 0.4;
+processInterval = 50; // milliseconds
+clarityThreshold = 0.65;
+frequencyTolerance = 40; // Hz
+```
+
+### Desktop Devices
+```javascript
+analyser.fftSize = 2048;
+analyser.smoothingTimeConstant = 0.8;
+clarityThreshold = 0.8;
+frequencyTolerance = 15; // Hz
+```
+
+## Audio Processing Pipeline
+
+1. **Input Capture**
+   - Get system audio capabilities
+   - Create compatible AudioContext
+   - Setup MediaStreamSource
+
+2. **Signal Processing**
+   - FFT analysis with device-specific size
+   - Controlled processing intervals
+   - Adaptive smoothing
+
+3. **Pitch Detection**
+   - Clarity threshold check
+   - Frequency matching
+   - Note identification
+
+4. **Performance Optimization**
+   - Disabled echo cancellation
+   - Disabled noise suppression
+   - Disabled auto gain control
+   - Single channel audio
+
+## Troubleshooting Guide
+
+### No Sound Detection
+1. Check microphone permissions
+2. Verify AudioContext state is 'running'
+3. Confirm audio input is active
+4. Check system sample rate
+
+### High Latency
+1. Reduce FFT size
+2. Lower smoothing constant
+3. Adjust processing interval
+4. Check for background processes
+
+### Inconsistent Detection
+1. Verify clarity threshold
+2. Check frequency tolerance
+3. Adjust smoothing constant
+4. Monitor system load
+
+## Best Practices
+
+1. **Mobile First**
+   - Always test on mobile devices
+   - Use device-specific settings
+   - Monitor performance metrics
+
+2. **Error Handling**
+   - Check AudioContext state
+   - Handle permission denials
+   - Provide user feedback
+
+3. **Performance**
+   - Use minimal processing
+   - Implement controlled intervals
+   - Monitor memory usage
+
+4. **User Experience**
+   - Provide clear feedback
+   - Handle errors gracefully
+   - Maintain responsive UI

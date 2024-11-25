@@ -1,65 +1,109 @@
-# Node.js Express Starter Project
+# Piano Teacher M - Interactive Piano Learning Web App
 
-This is a starter project for building RESTful APIs with Node.js and Express.js. It includes basic CRUD operations for a user resource.
+An interactive web-based piano learning application with real-time pitch detection, optimized for both desktop and mobile devices.
+
+## Features
+
+- Real-time pitch detection using Web Audio API
+- Mobile-optimized audio processing
+- Interactive piano keyboard interface
+- Visual note feedback
+- Cross-device compatibility
+- Low-latency audio processing
+
+## Technical Stack
+
+### Frontend
+- Vanilla JavaScript
+- HTML5
+- CSS3
+- Web Audio API for audio processing
+- Pitchy library for pitch detection
+
+### Audio Processing
+- FFT (Fast Fourier Transform) for frequency analysis
+- Adaptive sample rate handling
+- Device-specific optimizations
+- Real-time audio stream processing
+
+## Technical Specifications
+
+### Desktop Configuration
+- FFT Size: 2048 samples
+- Smoothing Constant: 0.8
+- Full audio quality settings
+
+### Mobile Configuration
+- FFT Size: 256 samples
+- Smoothing Constant: 0.4
+- Optimized audio processing
+- Controlled processing intervals (50ms)
+
+## Browser Requirements
+- Modern browser with Web Audio API support
+- Microphone access permission
+- JavaScript enabled
 
 ## Getting Started
 
-1. Install dependencies:
-   ```
+1. Clone the repository
+2. Install dependencies:
+   ```bash
    npm install
    ```
-
-2. Start the server:
-   ```
-   npm start
-   ```
-
-   For development with auto-restart:
-   ```
+3. Start the development server:
+   ```bash
    npm run dev
    ```
-
-3. The server will start on `http://localhost:3000`
-
-## API Endpoints
-
-- GET `/`: Welcome message
-- GET `/api/users`: Get all users
-- GET `/api/users/:id`: Get a single user
-- POST `/api/users`: Create a new user
-- PUT `/api/users/:id`: Update a user
-- DELETE `/api/users/:id`: Delete a user
-
-## Testing the API
-
-You can use tools like cURL, Postman, or any HTTP client to test the API endpoints.
-
-Example cURL commands:
-
-1. Get all users:
+4. Open in browser:
    ```
-   curl http://localhost:3000/api/users
+   http://localhost:5173
    ```
 
-2. Create a new user:
-   ```
-   curl -X POST -H "Content-Type: application/json" -d '{"name":"Alice Johnson","email":"alice@example.com"}' http://localhost:3000/api/users
-   ```
+## Usage
 
-3. Update a user:
-   ```
-   curl -X PUT -H "Content-Type: application/json" -d '{"name":"Alice Smith"}' http://localhost:3000/api/users/3
-   ```
+1. Allow microphone access when prompted
+2. Click "Start" to begin pitch detection
+3. Sing or play notes
+4. Watch for visual feedback on the piano keyboard
 
-4. Delete a user:
-   ```
-   curl -X DELETE http://localhost:3000/api/users/3
-   ```
+## Performance Optimizations
 
-## Next Steps
+- Dynamic FFT size based on device type
+- Controlled processing intervals
+- Sample rate compatibility handling
+- Optimized mobile audio processing
+- Reduced latency configurations
 
-- Add input validation
-- Implement authentication and authorization
-- Connect to a database (e.g., MongoDB, PostgreSQL)
-- Write unit and integration tests
-- Set up environment variables for configuration
+## Known Considerations
+
+- Microphone quality affects detection accuracy
+- Environmental noise can impact performance
+- Different devices may have varying latency
+
+## Development Notes
+
+### Audio Processing Pipeline
+1. Audio input capture
+2. FFT analysis
+3. Pitch detection
+4. Frequency matching
+5. Visual feedback
+
+### Mobile Optimizations
+- Reduced FFT size
+- Adjusted clarity thresholds
+- Controlled processing intervals
+- Sample rate compatibility fixes
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
