@@ -253,11 +253,15 @@ function startListening() {
   console.log('Is mobile device:', isMobile);
   
   // Much smaller FFT size for mobile
-  analyser.fftSize = isMobile ? 64 : 2048;
+  analyser.fftSize = isMobile ? 32 : 2048;
   console.log('FFT size set to:', analyser.fftSize);
   
   // Simple smoothing
   analyser.smoothingTimeConstant = 0.8;
+  
+  // Update frequencies for current device
+  staffModel.frequencies = getFrequencyMap();
+  console.log('Using frequency map:', staffModel.frequencies);
   
   detector = PitchDetector.forFloat32Array(analyser.fftSize);
 
@@ -305,17 +309,26 @@ function updatePitch() {
   let minDiff = Infinity;
 
   if (clarity > clarityThreshold) {
+    // Log all frequency differences for debugging
+    console.log('Frequency differences:');
     for (const [note, freq] of Object.entries(staffModel.frequencies)) {
       const diff = Math.abs(pitch - freq);
-      if (diff < minDiff) {
+      console.log(`${note}: ${diff.toFixed(2)} Hz difference`);
+      
+      // Add frequency range for mobile
+      const range = isMobile ? 30 : 15;
+      if (diff < minDiff && diff < range) {
         minDiff = diff;
         detectedNote = note;
       }
     }
 
     if (detectedNote) {
+      console.log(`Detected note: ${detectedNote} with difference: ${minDiff.toFixed(2)} Hz`);
       checkNote(detectedNote);
       highlightKey(detectedNote);
+    } else {
+      console.log('No note detected within acceptable range');
     }
   }
 
@@ -397,6 +410,31 @@ function initializePianoKeys() {
     key.style.cursor = 'pointer';
     key.style.transition = 'background-color 0.3s ease';
   });
+}
+
+function getFrequencyMap() {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile) {
+    return {
+      'C': 261.63,
+      'D': 293.66,
+      'E': 329.63,
+      'F': 349.23,
+      'G': 392.00,
+      'A': 440.00,
+      'B': 493.88
+    };
+  } else {
+    return {
+      'C': 261.63,
+      'D': 293.66,
+      'E': 329.63,
+      'F': 349.23,
+      'G': 392.00,
+      'A': 440.00,
+      'B': 493.88
+    };
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
