@@ -246,89 +246,121 @@ function startNoteAnimation() {
 function startListening() {
   if (isListening) return;
 
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  analyser = audioContext.createAnalyser();
-  
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   console.log('Is mobile device:', isMobile);
-  
-  // Much smaller FFT size for mobile
-  analyser.fftSize = isMobile ? 32 : 2048;
-  console.log('FFT size set to:', analyser.fftSize);
-  
-  // Simple smoothing
-  analyser.smoothingTimeConstant = 0.8;
-  
-  // Update frequencies for current device
-  staffModel.frequencies = getFrequencyMap();
-  console.log('Using frequency map:', staffModel.frequencies);
-  
-  detector = PitchDetector.forFloat32Array(analyser.fftSize);
 
-  navigator.mediaDevices
-    .getUserMedia({ 
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
-        channelCount: 1
-      } 
-    })
-    .then((stream) => {
-      source = audioContext.createMediaStreamSource(stream);
-      source.connect(analyser);
-      isListening = true;
-      document.getElementById('start-button').textContent = 'Listening...';
-      displayNote();
-      requestAnimationFrame(updatePitch);
-    })
-    .catch((err) => {
-      console.error('Error accessing microphone:', err);
-      document.getElementById('feedback').textContent =
-        'Error accessing microphone. Please check your settings and try again.';
+  // Create audio context with explicit sample rate
+  const contextOptions = {
+    sampleRate: isMobile ? 44100 : 48000,
+    latencyHint: isMobile ? 'playback' : 'interactive'
+  };
+  
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)(contextOptions);
+    console.log('Audio Context created with sample rate:', audioContext.sampleRate);
+    
+    analyser = audioContext.createAnalyser();
+    
+    // Mobile-optimized settings
+    if (isMobile) {
+      analyser.fftSize = 512;  // Smaller but not too small
+      analyser.minDecibels = -90;
+      analyser.maxDecibels = -10;
+      analyser.smoothingTimeConstant = 0.85;
+    } else {
+      analyser.fftSize = 2048;
+      analyser.minDecibels = -100;
+      analyser.maxDecibels = -30;
+      analyser.smoothingTimeConstant = 0.8;
+    }
+    
+    console.log('Analyzer settings:', {
+      fftSize: analyser.fftSize,
+      minDecibels: analyser.minDecibels,
+      maxDecibels: analyser.maxDecibels,
+      smoothingTimeConstant: analyser.smoothingTimeConstant
     });
+    
+    detector = PitchDetector.forFloat32Array(analyser.fftSize);
+
+    // Mobile-optimized audio constraints
+    const constraints = {
+      audio: {
+        echoCancellation: isMobile ? true : false,
+        noiseSuppression: isMobile ? true : false,
+        autoGainControl: isMobile ? true : false,
+        channelCount: 1,
+        sampleRate: isMobile ? 44100 : 48000,
+        sampleSize: isMobile ? 16 : 24,
+      }
+    };
+
+    console.log('Requesting microphone with constraints:', constraints);
+
+    navigator.mediaDevices
+      .getUserMedia(constraints)
+      .then((stream) => {
+        console.log('Got microphone stream');
+        source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+        isListening = true;
+        document.getElementById('start-button').textContent = 'Listening...';
+        
+        // Resume audio context (needed for iOS)
+        if (audioContext.state !== 'running') {
+          audioContext.resume().then(() => {
+            console.log('AudioContext resumed successfully');
+            displayNote();
+            requestAnimationFrame(updatePitch);
+          });
+        } else {
+          displayNote();
+          requestAnimationFrame(updatePitch);
+        }
+      })
+      .catch((err) => {
+        console.error('Error accessing microphone:', err);
+        document.getElementById('feedback').textContent =
+          'Error accessing microphone. Please check your settings and try again.';
+      });
+  } catch (err) {
+    console.error('Error creating audio context:', err);
+    document.getElementById('feedback').textContent =
+      'Error initializing audio. Please try again.';
+  }
 }
 
 function updatePitch() {
+  if (!isListening || !analyser) return;
+
   const buffer = new Float32Array(analyser.fftSize);
   analyser.getFloatTimeDomainData(buffer);
-  const styles = getComputedStyle(document.documentElement);
   
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  const baseThreshold = parseFloat(styles.getPropertyValue('--pitch-clarity-threshold'));
-  const clarityThreshold = isMobile ? 0.75 : baseThreshold;
-  
   const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
+  
+  // Use different thresholds for mobile
+  const clarityThreshold = isMobile ? 0.8 : 0.9;
 
-  // Debug logging
-  if (clarity > clarityThreshold) {
+  if (clarity >= clarityThreshold) {
     console.log(`Pitch: ${pitch.toFixed(1)} Hz, Clarity: ${clarity.toFixed(2)}`);
-  }
+    
+    let detectedNote = null;
+    let minDiff = Infinity;
+    const maxDiff = isMobile ? 35 : 15; // Wider tolerance for mobile
 
-  let detectedNote = null;
-  let minDiff = Infinity;
-
-  if (clarity > clarityThreshold) {
-    // Log all frequency differences for debugging
-    console.log('Frequency differences:');
     for (const [note, freq] of Object.entries(staffModel.frequencies)) {
       const diff = Math.abs(pitch - freq);
-      console.log(`${note}: ${diff.toFixed(2)} Hz difference`);
-      
-      // Add frequency range for mobile
-      const range = isMobile ? 30 : 15;
-      if (diff < minDiff && diff < range) {
+      if (diff < minDiff && diff < maxDiff) {
         minDiff = diff;
         detectedNote = note;
       }
     }
 
     if (detectedNote) {
-      console.log(`Detected note: ${detectedNote} with difference: ${minDiff.toFixed(2)} Hz`);
+      console.log(`Detected ${detectedNote} (diff: ${minDiff.toFixed(1)} Hz)`);
       checkNote(detectedNote);
       highlightKey(detectedNote);
-    } else {
-      console.log('No note detected within acceptable range');
     }
   }
 
