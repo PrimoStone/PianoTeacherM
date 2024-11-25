@@ -249,121 +249,125 @@ function startListening() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   console.log('Is mobile device:', isMobile);
 
-  // Create audio context with explicit sample rate
-  const contextOptions = {
-    sampleRate: isMobile ? 44100 : 48000,
-    latencyHint: isMobile ? 'playback' : 'interactive'
-  };
+  // First get the audio capabilities
+  navigator.mediaDevices.getUserMedia({
+    audio: {
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl: false,
+      channelCount: 1
+    }
+  })
+  .then(stream => {
+    // Get the actual sample rate from the stream
+    const track = stream.getAudioTracks()[0];
+    const capabilities = track.getCapabilities();
+    console.log('Audio capabilities:', capabilities);
+    
+    // Create audio context with the actual sample rate
+    const contextOptions = {
+      latencyHint: 'interactive'
+    };
+    
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)(contextOptions);
+      console.log('Audio Context created with sample rate:', audioContext.sampleRate);
+      
+      analyser = audioContext.createAnalyser();
+      
+      // Optimize for continuous processing
+      if (isMobile) {
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.4;
+      } else {
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.8;
+      }
+      
+      console.log('Analyzer settings:', {
+        fftSize: analyser.fftSize,
+        smoothingTimeConstant: analyser.smoothingTimeConstant,
+        sampleRate: audioContext.sampleRate
+      });
+      
+      detector = PitchDetector.forFloat32Array(analyser.fftSize);
+
+      // Use the existing stream
+      source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+      isListening = true;
+      document.getElementById('start-button').textContent = 'Listening...';
+      
+      if (audioContext.state !== 'running') {
+        audioContext.resume().then(() => {
+          console.log('AudioContext resumed');
+          startPitchDetection();
+        });
+      } else {
+        startPitchDetection();
+      }
+    } catch (err) {
+      console.error('Error creating audio context:', err);
+      document.getElementById('feedback').textContent = 
+        'Error initializing audio. Please try again.';
+    }
+  })
+  .catch(err => {
+    console.error('Error accessing microphone:', err);
+    document.getElementById('feedback').textContent =
+      'Error accessing microphone. Please check settings.';
+  });
+}
+
+function startPitchDetection() {
+  let lastProcessTime = 0;
+  const processInterval = 50; // Process every 50ms
   
-  try {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)(contextOptions);
-    console.log('Audio Context created with sample rate:', audioContext.sampleRate);
+  function processAudio(timestamp) {
+    if (!isListening) return;
     
-    analyser = audioContext.createAnalyser();
-    
-    // Mobile-optimized settings
-    if (isMobile) {
-      analyser.fftSize = 512;  // Smaller but not too small
-      analyser.minDecibels = -90;
-      analyser.maxDecibels = -10;
-      analyser.smoothingTimeConstant = 0.85;
-    } else {
-      analyser.fftSize = 2048;
-      analyser.minDecibels = -100;
-      analyser.maxDecibels = -30;
-      analyser.smoothingTimeConstant = 0.8;
+    // Only process if enough time has passed
+    if (timestamp - lastProcessTime >= processInterval) {
+      const buffer = new Float32Array(analyser.fftSize);
+      analyser.getFloatTimeDomainData(buffer);
+      
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
+      
+      const clarityThreshold = isMobile ? 0.65 : 0.8;
+      
+      if (clarity >= clarityThreshold) {
+        let detectedNote = null;
+        let minDiff = Infinity;
+        const maxDiff = isMobile ? 40 : 15;
+
+        for (const [note, freq] of Object.entries(staffModel.frequencies)) {
+          const diff = Math.abs(pitch - freq);
+          if (diff < minDiff && diff < maxDiff) {
+            minDiff = diff;
+            detectedNote = note;
+          }
+        }
+
+        if (detectedNote) {
+          checkNote(detectedNote);
+          highlightKey(detectedNote);
+        }
+      }
+      
+      lastProcessTime = timestamp;
     }
     
-    console.log('Analyzer settings:', {
-      fftSize: analyser.fftSize,
-      minDecibels: analyser.minDecibels,
-      maxDecibels: analyser.maxDecibels,
-      smoothingTimeConstant: analyser.smoothingTimeConstant
-    });
-    
-    detector = PitchDetector.forFloat32Array(analyser.fftSize);
-
-    // Mobile-optimized audio constraints
-    const constraints = {
-      audio: {
-        echoCancellation: isMobile ? true : false,
-        noiseSuppression: isMobile ? true : false,
-        autoGainControl: isMobile ? true : false,
-        channelCount: 1,
-        sampleRate: isMobile ? 44100 : 48000,
-        sampleSize: isMobile ? 16 : 24,
-      }
-    };
-
-    console.log('Requesting microphone with constraints:', constraints);
-
-    navigator.mediaDevices
-      .getUserMedia(constraints)
-      .then((stream) => {
-        console.log('Got microphone stream');
-        source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser);
-        isListening = true;
-        document.getElementById('start-button').textContent = 'Listening...';
-        
-        // Resume audio context (needed for iOS)
-        if (audioContext.state !== 'running') {
-          audioContext.resume().then(() => {
-            console.log('AudioContext resumed successfully');
-            displayNote();
-            requestAnimationFrame(updatePitch);
-          });
-        } else {
-          displayNote();
-          requestAnimationFrame(updatePitch);
-        }
-      })
-      .catch((err) => {
-        console.error('Error accessing microphone:', err);
-        document.getElementById('feedback').textContent =
-          'Error accessing microphone. Please check your settings and try again.';
-      });
-  } catch (err) {
-    console.error('Error creating audio context:', err);
-    document.getElementById('feedback').textContent =
-      'Error initializing audio. Please try again.';
+    // Schedule next frame
+    requestAnimationFrame(processAudio);
   }
+  
+  // Start the processing loop
+  requestAnimationFrame(processAudio);
 }
 
 function updatePitch() {
-  if (!isListening || !analyser) return;
-
-  const buffer = new Float32Array(analyser.fftSize);
-  analyser.getFloatTimeDomainData(buffer);
-  
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
-  
-  // Use different thresholds for mobile
-  const clarityThreshold = isMobile ? 0.8 : 0.9;
-
-  if (clarity >= clarityThreshold) {
-    console.log(`Pitch: ${pitch.toFixed(1)} Hz, Clarity: ${clarity.toFixed(2)}`);
-    
-    let detectedNote = null;
-    let minDiff = Infinity;
-    const maxDiff = isMobile ? 35 : 15; // Wider tolerance for mobile
-
-    for (const [note, freq] of Object.entries(staffModel.frequencies)) {
-      const diff = Math.abs(pitch - freq);
-      if (diff < minDiff && diff < maxDiff) {
-        minDiff = diff;
-        detectedNote = note;
-      }
-    }
-
-    if (detectedNote) {
-      console.log(`Detected ${detectedNote} (diff: ${minDiff.toFixed(1)} Hz)`);
-      checkNote(detectedNote);
-      highlightKey(detectedNote);
-    }
-  }
-
+  // This function is now deprecated, using startPitchDetection instead
   if (isListening) {
     requestAnimationFrame(updatePitch);
   }
