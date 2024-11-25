@@ -159,6 +159,42 @@ const FREQUENCY_RANGES = {
   'B': { min: 485, max: 505 }   // Wider range for B
 };
 
+// Wake Lock variables and functions
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('Wake Lock is active');
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    } else {
+      console.log('Wake Lock API not supported');
+    }
+  } catch (err) {
+    console.error('Wake Lock request failed:', err);
+  }
+}
+
+async function handleVisibilityChange() {
+  if (wakeLock !== null && document.visibilityState === 'visible') {
+    await requestWakeLock();
+  }
+}
+
+async function releaseWakeLock() {
+  if (wakeLock !== null) {
+    try {
+      await wakeLock.release();
+      wakeLock = null;
+      console.log('Wake Lock released');
+    } catch (err) {
+      console.error('Failed to release Wake Lock:', err);
+    }
+  }
+}
+
 function displayNote() {
   if (isAnimating) return;
   isAnimating = true;
@@ -249,6 +285,11 @@ function startListening() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   console.log('Is mobile device:', isMobile);
 
+  // Request wake lock for mobile devices
+  if (isMobile) {
+    requestWakeLock();
+  }
+
   // First get the audio capabilities
   navigator.mediaDevices.getUserMedia({
     audio: {
@@ -317,6 +358,19 @@ function startListening() {
     document.getElementById('feedback').textContent =
       'Error accessing microphone. Please check settings.';
   });
+}
+
+function stopListening() {
+  if (!isListening) return;
+  
+  isListening = false;
+  if (source) {
+    source.disconnect();
+  }
+  document.getElementById('start-button').textContent = 'Start';
+  
+  // Release wake lock when stopping
+  releaseWakeLock();
 }
 
 function startPitchDetection() {
@@ -480,5 +534,10 @@ document.addEventListener('DOMContentLoaded', () => {
 document
   .getElementById('start-button')
   .addEventListener('click', startListening);
+
+// Add cleanup on page unload
+window.addEventListener('beforeunload', () => {
+  releaseWakeLock();
+});
 
 displayNote();
