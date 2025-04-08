@@ -1,8 +1,8 @@
 :root {
   /* Staff dimensions */
   --staff-width: 100%;
-  --staff-height: 130px;
-  --staff-top-margin: 20px;
+  --staff-height: 180px;
+  --staff-top-margin: 40px;
   
   /* Staff line properties */
   --staff-line-spacing: 24px;
@@ -129,7 +129,7 @@ h1 {
   top: calc(var(--staff-top-margin) + 0px);
   left: 0;
   right: 0;
-  height: calc(var(--staff-line-spacing) * (var(--staff-total-lines) - 1));
+  height: calc(var(--staff-line-spacing) * var(--staff-total-lines));
   background-image: repeating-linear-gradient(
     to bottom,
     var(--staff-line-color) 0,
@@ -145,7 +145,7 @@ h1 {
   top: calc(var(--staff-top-margin) + 0px);
   left: 0;
   right: 0;
-  height: calc(var(--staff-line-spacing) * (var(--staff-total-lines) - 1));
+  height: calc(var(--staff-line-spacing) * var(--staff-total-lines));
   background-image: repeating-linear-gradient(
     to bottom,
     var(--staff-line-color) 0,
@@ -166,6 +166,7 @@ h1 {
   visibility: visible;
   transition: color 0.3s ease;
   z-index: 1;
+  margin-top: calc(-1 * var(--note-height) / 2); /* Center the note vertically at its position */
 }
 
 .note.note-C::before {
@@ -604,4 +605,9 @@ button:hover {
     font-size: 16px;
     padding: 8px 16px;
   }
+}
+
+button {
+  font-size: 16px;
+  padding: 8px 16px;
 }

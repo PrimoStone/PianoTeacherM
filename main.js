@@ -182,26 +182,25 @@ class StaffModel {
     const linePosition5 = linePosition4 + staffLineSpacing; // F5 (fifth line)
     
     this.trebleNotePositions = {
-      // Middle C (C4) is on the ledger line below the staff
-      'C4': linePosition1 + staffLineSpacing/2, // C4 is a ledger line below the staff
+      // Using B4 as a reference point (which is on the third line and displayed correctly)
+      'B4': linePosition3, // B4 is on the third line (our reference point)
       
-      // Position notes on the staff (5 lines and 4 spaces)
-      'D4': linePosition1 + staffLineSpacing/4, // D4 is between C4 and E4
-      'E4': linePosition1, // E4 is on the first line
-      'F4': linePosition1 - staffLineSpacing/2, // F4 is on first space
-      'G4': linePosition2, // G4 is on second line
-      'A4': linePosition2 - staffLineSpacing/2, // A4 is on second space
-      'B4': linePosition3, // B4 is on third line
+      // Notes above B4 (moving up on the staff)
+      'C5': linePosition3 - staffLineSpacing/2, // C5 is on third space (above B4)
+      'D5': linePosition3 - staffLineSpacing, // D5 is on fourth line
+      'E5': linePosition3 - staffLineSpacing*1.5, // E5 is on fourth space
+      'F5': linePosition3 - staffLineSpacing*2, // F5 is on fifth line
+      'G5': linePosition3 - staffLineSpacing*2.5, // G5 is above fifth line
+      'A5': linePosition3 - staffLineSpacing*3, // A5 is above fifth line
+      'B5': linePosition3 - staffLineSpacing*3.5, // B5 is above fifth line
       
-      // These notes would be higher and not typically used in our basic app
-      // but included for completeness
-      'C5': linePosition3 - staffLineSpacing/2, // C5 is on third space
-      'D5': linePosition4, // D5 is on fourth line
-      'E5': linePosition4 - staffLineSpacing/2, // E5 is on fourth space
-      'F5': linePosition5, // F5 is on fifth line
-      'G5': linePosition5 + staffLineSpacing/2, // G5 is above fifth line
-      'A5': linePosition5 + staffLineSpacing, // A5 is above fifth line
-      'B5': linePosition5 + staffLineSpacing*1.5, // B5 is above fifth line
+      // Notes below B4 (moving down on the staff)
+      'A4': linePosition3 + staffLineSpacing/2, // A4 is on second space (below B4)
+      'G4': linePosition3 + staffLineSpacing, // G4 is on second line
+      'F4': linePosition3 + staffLineSpacing*1.5, // F4 is on first space
+      'E4': linePosition3 + staffLineSpacing*2, // E4 is on first line
+      'D4': linePosition3 + staffLineSpacing*2.5, // D4 is between staff and ledger line
+      'C4': linePosition3 + staffLineSpacing*3, // C4 is on first ledger line below the staff
     };
   }
 
@@ -244,9 +243,11 @@ class StaffModel {
   }
 
   getNotePosition(note) {
-    // Determine if it's a treble or bass note by checking the note name
-    const isTrebleNote = note.includes('4') || note.includes('5');
-    return isTrebleNote ? this.trebleNotePositions[note] : this.bassNotePositions[note];
+    // Use the current clef to determine which position mapping to use
+    // This ensures notes are positioned correctly on the current active staff
+    return this.currentClef === 'treble' 
+      ? this.trebleNotePositions[note]
+      : this.bassNotePositions[note];
   }
 
   getRandomNote(excludeNote = null) {
