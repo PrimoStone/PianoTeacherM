@@ -430,6 +430,9 @@ function startNoteAnimation(noteElement) {
   noteElement.style.right = '-30px';
   noteElement.style.top = `${staffModel.getNotePosition(currentNote)}px`;
   
+  // Add note-specific class for CSS targeting
+  noteElement.classList.add(`note-${currentNote}`);
+  
   // Apply proper stem direction based on note position
   applyStemDirection(noteElement, currentNote);
   
@@ -447,6 +450,29 @@ function startNoteAnimation(noteElement) {
   }, 4000);
 }
 
+function clearNoteAnimation() {
+  if (animationTimer) {
+    clearTimeout(animationTimer);
+    animationTimer = null;
+  }
+  
+  const trebleNote = document.getElementById('treble-note');
+  const bassNote = document.getElementById('bass-note');
+  
+  // Reset notes
+  trebleNote.style.right = '-30px';
+  trebleNote.classList.remove('active');
+  
+  bassNote.style.right = '-30px';
+  bassNote.classList.remove('active');
+  
+  // Remove all note-specific classes (note-C3, note-D3, etc.)
+  trebleNote.className = trebleNote.className.replace(/\bnote-[A-G][0-9]\b/g, '');
+  bassNote.className = bassNote.className.replace(/\bnote-[A-G][0-9]\b/g, '');
+  
+  isAnimating = false;
+}
+
 /**
  * Applies the proper stem direction to a note based on its position on the staff
  * Following standard music notation rules:
@@ -458,17 +484,11 @@ function applyStemDirection(noteElement, noteName) {
   // Remove any existing rotation classes
   noteElement.classList.remove('stem-up', 'stem-down');
   
-  // Middle line in treble clef is B4
-  // Middle line in bass clef is D3
+  // For treble clef: notes below C5 have stems on right side (unchanged)
+  // For bass clef: C3 has stem on right side pointing up, D3 and above have stems on left side pointing down
   const isMiddleLineOrHigher = 
     (currentClef === 'treble' && noteName.includes('5')) ||
-    (currentClef === 'bass' && (noteName === 'D3' || 
-                              noteName === 'E3' || 
-                              noteName === 'F3' || 
-                              noteName === 'G3' || 
-                              noteName === 'A3' || 
-                              noteName === 'B3' || 
-                              noteName.includes('4')));
+    (currentClef === 'bass' && noteName !== 'C3');
   
   if (isMiddleLineOrHigher) {
     // For notes on or above the middle line (B4+), stems on left side pointing down

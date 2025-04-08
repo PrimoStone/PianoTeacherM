@@ -217,18 +217,36 @@ h1 {
   transform: translateX(-50%);
 }
 
-/* Bass clef specific adjustments if needed */
-#bass-note.note.stem-up::after {
-  bottom: auto;
-  top: 12px;
-  left: 90%; /* Stem on right side */
+/* Bass clef specific stem rules */
+/* C3 has stem on right side pointing down */
+#bass-note.note-C3::after {
+  bottom: 12px !important;
+  top: auto !important;
+  height: var(--note-stem-height);
+  left: 90% !important; /* Stem on right side */
   transform: translateX(-50%);
 }
 
-#bass-note.note.stem-down::after {
-  bottom: 12px;
-  top: auto;
-  left: 10%; /* Stem on left side */
+/* D3-B3 have stems on left side pointing up */
+#bass-note.note-D3::after,
+#bass-note.note-E3::after,
+#bass-note.note-F3::after,
+#bass-note.note-G3::after,
+#bass-note.note-A3::after,
+#bass-note.note-B3::after {
+  bottom: auto !important;
+  top: 12px !important;
+  height: var(--note-stem-height);
+  left: 10% !important; /* Stem on left side */
+  transform: translateX(-50%);
+}
+
+/* B3 special case - ensure it's included */
+#bass-note.note-B3::after {
+  bottom: auto !important;
+  top: 12px !important;
+  height: var(--note-stem-height);
+  left: 10% !important; /* Stem on left side */
   transform: translateX(-50%);
 }
 
