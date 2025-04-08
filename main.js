@@ -221,24 +221,28 @@ class StaffModel {
     const linePosition4 = linePosition3 + staffLineSpacing; // F3 (fourth line)
     const linePosition5 = linePosition4 + staffLineSpacing; // A3 (fifth line)
     
+    // Using B3 as reference point
+    // Calculate positions relative to B3
+    const b3Position = linePosition3 - staffLineSpacing * 2 - staffLineSpacing/2;
+    
     this.bassNotePositions = {
-      // Lower notes
-      'C3': linePosition1 + staffLineSpacing, // C3 is one ledger line below staff
-      'D3': linePosition1 + staffLineSpacing/2, // D3 is between C3 and E3
-      'E3': linePosition1, // E3 is on first line
-      'F3': linePosition1 - staffLineSpacing/2, // F3 is on first space
+      // Notes on the staff and below
+      'C3': b3Position + staffLineSpacing * 3, // C3 is 3 spaces below B3
+      'D3': b3Position + staffLineSpacing * 2.5, // D3 is 2.5 spaces below B3
+      'E3': b3Position + staffLineSpacing * 2, // E3 is 2 spaces below B3
+      'F3': b3Position + staffLineSpacing * 1.5, // F3 is 1.5 spaces below B3
+      'G3': b3Position + staffLineSpacing, // G3 is 1 space below B3
+      'A3': b3Position + staffLineSpacing/2, // A3 is 0.5 space below B3
+      'B3': b3Position, // B3 is our reference point
       
-      // Notes on the staff
-      'G3': linePosition2, // G3 is on second line
-      'A3': linePosition2 - staffLineSpacing/2, // A3 is on second space
-      'B3': linePosition3, // B3 is on third line (moved up one staff line spacing)
-      'C4': linePosition3 - staffLineSpacing/2, // C4 is on third space
-      'D4': linePosition4, // D4 is on fourth line
-      'E4': linePosition4 - staffLineSpacing/2, // E4 is on fourth space
-      'F4': linePosition5, // F4 is on fifth line
-      'G4': linePosition5 - staffLineSpacing/2, // G4 is on first space above staff
-      'A4': linePosition5 - staffLineSpacing, // A4 is one ledger line above staff
-      'B4': linePosition5 - staffLineSpacing * 1.5, // B4 is between A4 and C5
+      // Notes above B3
+      'C4': b3Position - staffLineSpacing/2, // C4 is half space above B3
+      'D4': b3Position - staffLineSpacing, // D4 is 1 space above B3
+      'E4': b3Position - staffLineSpacing * 1.5, // E4 is 1.5 spaces above B3
+      'F4': b3Position - staffLineSpacing * 2, // F4 is 2 spaces above B3
+      'G4': b3Position - staffLineSpacing * 2.5, // G4 is 2.5 spaces above B3
+      'A4': b3Position - staffLineSpacing * 3, // A4 is 3 spaces above B3
+      'B4': b3Position - staffLineSpacing * 3.5, // B4 is 3.5 spaces above B3
     };
   }
 
