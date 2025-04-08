@@ -1,14 +1,14 @@
 :root {
   /* Staff dimensions */
-  --staff-width: 400px;
-  --staff-height: 200px;
+  --staff-width: 100%;
+  --staff-height: 130px;
   --staff-top-margin: 20px;
   
   /* Staff line properties */
   --staff-line-spacing: 24px;
-  --staff-line-height: 1px;
+  --staff-line-height: 2px;  
   --staff-line-color: #666;
-  --staff-total-lines: 6;
+  --staff-total-lines: 5;
   
   /* Note properties */
   --note-width: 24px;
@@ -37,8 +37,12 @@
   --settings-inactive-color: #6c757d;
   
   /* Learning mode properties */
-  --learning-highlight-color: #3498db;  /* Changed to a more vibrant blue */
+  --learning-highlight-color: #3498db;  
   --note-text-color: #333;
+  
+  /* Clef symbols */
+  --treble-clef-width: 30px;
+  --bass-clef-width: 30px;
 }
 
 body {
@@ -46,52 +50,112 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0;
   background-color: #f0f0f0;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
 #app {
   text-align: center;
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-#staff-container {
+h1 {
+  font-size: 2rem;
+  margin: 0.5rem 0;
+}
+
+.music-score-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.staff-container {
   position: relative;
   width: var(--staff-width);
   height: var(--staff-height);
-  margin: 20px auto;
+  margin: 0 auto;
   overflow: hidden;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
 }
 
-#staff {
+.clef-symbol {
   position: absolute;
-  top: var(--staff-top-margin);
-  left: 0;
-  width: 100%;
-  height: 100%;
-  padding: 40px 0;
+  left: 10px;
+  height: 80%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 2;
 }
 
-#staff::before {
-  content: '';
+.treble-clef {
+  width: var(--treble-clef-width);
+  top: 15px; 
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 80"><path d="M10,70c0-7.8,8-10,8-20c0-9.2-4-15-8-17.5c4-2.5,8-8.3,8-17.5c0-10-8-12.2-8-20h1c0,7.8,9,9.2,9,20c0,10-4,16-9,18.5v1c5,2.5,9,8.5,9,18.5c0,10.8-9,12.2-9,20h-1z"/><circle cx="10" cy="75" r="2.5"/></svg>');
+}
+
+.bass-clef {
+  width: var(--bass-clef-width);
+  top: 5px; 
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 40"><path d="M2,15 C2,8 10,8 10,15 C10,22 2,22 2,15 M10,15 L18,15 M18,10 L18,20 M2,5 L18,5 M2,25 L18,25" stroke="black" stroke-width="2" fill="none"/><circle cx="16" cy="8" r="2" /><circle cx="16" cy="22" r="2" /></svg>');
+}
+
+.staff {
   position: absolute;
   top: 0;
+  left: 50px; 
+  width: calc(100% - 60px); 
+  height: 100%;
+  box-sizing: border-box;
+}
+
+#treble-staff::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--staff-top-margin) + 0px);
   left: 0;
   right: 0;
-  height: calc(var(--staff-line-spacing) * var(--staff-total-lines));
+  height: calc(var(--staff-line-spacing) * (var(--staff-total-lines) - 1));
   background-image: repeating-linear-gradient(
     to bottom,
-    transparent 0,
-    transparent var(--staff-line-spacing),
-    var(--staff-line-color) var(--staff-line-spacing),
-    var(--staff-line-color) calc(var(--staff-line-spacing) + var(--staff-line-height))
+    var(--staff-line-color) 0,
+    var(--staff-line-color) var(--staff-line-height),
+    transparent var(--staff-line-height),
+    transparent var(--staff-line-spacing)
   );
 }
 
-#note {
+#bass-staff::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--staff-top-margin) + 0px);
+  left: 0;
+  right: 0;
+  height: calc(var(--staff-line-spacing) * (var(--staff-total-lines) - 1));
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--staff-line-color) 0,
+    var(--staff-line-color) var(--staff-line-height),
+    transparent var(--staff-line-height),
+    transparent var(--staff-line-spacing)
+  );
+}
+
+.note {
   position: absolute;
   width: var(--note-width);
   height: var(--note-height);
@@ -101,9 +165,10 @@ body {
   transform-origin: center;
   visibility: visible;
   transition: color 0.3s ease;
+  z-index: 1;
 }
 
-#note.note-C::before {
+.note.note-C::before {
   content: '';
   position: absolute;
   width: 120%;
@@ -115,12 +180,12 @@ body {
   transform: translateY(-50%);
 }
 
-#note.note-B {
+.note.note-B {
   transform: scale(var(--note-scale)) rotate(180deg);
   transition: transform 0.3s ease;
 }
 
-#note::after {
+.note::after {
   content: '';
   position: absolute;
   width: var(--note-stem-width);
@@ -132,12 +197,22 @@ body {
   transform-origin: bottom center;
 }
 
-#note.rotate-note {
+#bass-note.note::after {
+  bottom: auto;
+  top: 12px;
+  transform: translateX(-50%) rotate(180deg);
+}
+
+#bass-note.note.rotate-note {
+  transform: scale(var(--note-scale));
+}
+
+.note.rotate-note {
   transform: scale(var(--note-scale)) rotate(180deg);
   transition: transform 0.3s ease;
 }
 
-#note.success {
+.note.success {
   animation: success-animation var(--note-animation-duration) ease-out forwards;
   color: var(--note-success-color);
 }
@@ -161,6 +236,16 @@ button {
   margin-top: 20px;
   font-size: 18px;
   padding: 10px 20px;
+  background-color: var(--settings-active-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #3c8c40;
 }
 
 #feedback {
@@ -174,52 +259,180 @@ button {
   color: #666;
 }
 
-.piano-keyboard {
+.keyboard-container {
+  width: 100%;
+  margin: 20px auto;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.piano-keyboard-horizontal {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  width: max-content;
+  margin: 0 auto;
+  position: relative;
+  height: 150px;
+}
+
+.octave {
   position: relative;
   display: flex;
-  width: 100%;
-  max-width: 600px;
-  height: 200px;
-  margin: 20px auto;
-  background-color: #f0f0f0;
-  border-radius: 8px;
-  padding: 10px;
+  width: 210px; /* Width of 7 white keys */
+  height: 100%;
 }
 
 .white-key {
-  flex: 1;
+  position: relative;
+  width: 30px;
+  height: 100%;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 0 0 4px 4px;
-  margin: 0 2px;
-  height: 120px;
-  position: relative;
-  z-index: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 5px;
+  font-size: 12px;
+  color: #666;
   transition: background-color 0.3s ease;
 }
 
 .black-keys {
   position: absolute;
-  top: 10px;
+  top: 0;
   left: 0;
   right: 0;
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
+  height: 60%;
   z-index: 1;
 }
 
 .black-key {
-  pointer-events: auto;
-  background-color: black;
-  width: 30px;
-  height: 80px;
-  margin: 0;
-  border-radius: 0 0 4px 4px;
   position: absolute;
+  width: 20px;
+  height: 100%;
+  background-color: black;
+  border-radius: 0 0 4px 4px;
   transition: background-color 0.3s ease;
 }
 
+/* C2 Octave black key positions */
+#octave-c2 #key-C2sharp { left: 20px; }
+#octave-c2 #key-D2sharp { left: 50px; }
+#octave-c2 #key-F2sharp { left: 110px; }
+#octave-c2 #key-G2sharp { left: 140px; }
+#octave-c2 #key-A2sharp { left: 170px; }
+
+/* C3 Octave black key positions */
+#octave-c3 #key-C3sharp { left: 20px; }
+#octave-c3 #key-D3sharp { left: 50px; }
+#octave-c3 #key-F3sharp { left: 110px; }
+#octave-c3 #key-G3sharp { left: 140px; }
+#octave-c3 #key-A3sharp { left: 170px; }
+
+/* C4 Octave black key positions */
+#octave-c4 #key-C4sharp { left: 20px; }
+#octave-c4 #key-D4sharp { left: 50px; }
+#octave-c4 #key-F4sharp { left: 110px; }
+#octave-c4 #key-G4sharp { left: 140px; }
+#octave-c4 #key-A4sharp { left: 170px; }
+
+/* C5 Octave black key positions */
+#octave-c5 #key-C5sharp { left: 20px; }
+#octave-c5 #key-D5sharp { left: 50px; }
+#octave-c5 #key-F5sharp { left: 110px; }
+#octave-c5 #key-G5sharp { left: 140px; }
+#octave-c5 #key-A5sharp { left: 170px; }
+
+/* Responsive adjustments for the horizontal keyboard */
+@media (max-width: 768px) {
+  .piano-keyboard-horizontal {
+    height: 120px;
+  }
+  
+  .octave {
+    width: 175px;
+  }
+  
+  .white-key {
+    width: 25px;
+  }
+  
+  .black-key {
+    width: 16px;
+  }
+  
+  #octave-c2 #key-C2sharp { left: 17px; }
+  #octave-c2 #key-D2sharp { left: 42px; }
+  #octave-c2 #key-F2sharp { left: 92px; }
+  #octave-c2 #key-G2sharp { left: 117px; }
+  #octave-c2 #key-A2sharp { left: 142px; }
+  
+  #octave-c3 #key-C3sharp { left: 17px; }
+  #octave-c3 #key-D3sharp { left: 42px; }
+  #octave-c3 #key-F3sharp { left: 92px; }
+  #octave-c3 #key-G3sharp { left: 117px; }
+  #octave-c3 #key-A3sharp { left: 142px; }
+  
+  #octave-c4 #key-C4sharp { left: 17px; }
+  #octave-c4 #key-D4sharp { left: 42px; }
+  #octave-c4 #key-F4sharp { left: 92px; }
+  #octave-c4 #key-G4sharp { left: 117px; }
+  #octave-c4 #key-A4sharp { left: 142px; }
+  
+  #octave-c5 #key-C5sharp { left: 17px; }
+  #octave-c5 #key-D5sharp { left: 42px; }
+  #octave-c5 #key-F5sharp { left: 92px; }
+  #octave-c5 #key-G5sharp { left: 117px; }
+  #octave-c5 #key-A5sharp { left: 142px; }
+}
+
+@media (max-width: 480px) {
+  .piano-keyboard-horizontal {
+    height: 100px;
+  }
+  
+  .octave {
+    width: 140px;
+  }
+  
+  .white-key {
+    width: 20px;
+    font-size: 8px;
+  }
+  
+  .black-key {
+    width: 12px;
+  }
+  
+  #octave-c2 #key-C2sharp { left: 14px; }
+  #octave-c2 #key-D2sharp { left: 34px; }
+  #octave-c2 #key-F2sharp { left: 74px; }
+  #octave-c2 #key-G2sharp { left: 94px; }
+  #octave-c2 #key-A2sharp { left: 114px; }
+  
+  #octave-c3 #key-C3sharp { left: 14px; }
+  #octave-c3 #key-D3sharp { left: 34px; }
+  #octave-c3 #key-F3sharp { left: 74px; }
+  #octave-c3 #key-G3sharp { left: 94px; }
+  #octave-c3 #key-A3sharp { left: 114px; }
+  
+  #octave-c4 #key-C4sharp { left: 14px; }
+  #octave-c4 #key-D4sharp { left: 34px; }
+  #octave-c4 #key-F4sharp { left: 74px; }
+  #octave-c4 #key-G4sharp { left: 94px; }
+  #octave-c4 #key-A4sharp { left: 114px; }
+  
+  #octave-c5 #key-C5sharp { left: 14px; }
+  #octave-c5 #key-D5sharp { left: 34px; }
+  #octave-c5 #key-F5sharp { left: 74px; }
+  #octave-c5 #key-G5sharp { left: 94px; }
+  #octave-c5 #key-A5sharp { left: 114px; }
+}
+
+/* Keep existing styles for highlighted, learning-highlight, etc. */
 .white-key.highlighted {
   background-color: #cccccc !important;
 }
@@ -236,14 +449,13 @@ button {
   background-color: #2980b9 !important;
 }
 
-#key-Csharp { left: 11%; }
-#key-Dsharp { left: 25%; }
-#key-Fsharp { left: 53%; }
-#key-Gsharp { left: 67%; }
-#key-Asharp { left: 81%; }
-
 .white-key:active, .black-key:active {
   background-color: #ddd;
+}
+
+.white-key span {
+  display: inline-block;
+  font-size: 10px;
 }
 
 .detected {
@@ -254,24 +466,9 @@ button {
   background-color: #ff6666 !important;
 }
 
-#note-name {
-  position: absolute;
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--note-text-color);
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-#note-name.visible {
-  opacity: 1;
-}
-
 #settings-container {
-  width: var(--staff-width);
+  width: 100%;
+  max-width: var(--staff-width);
   margin: 0 auto 20px;
   padding: 15px;
   background-color: var(--settings-bg-color);
@@ -280,6 +477,8 @@ button {
   display: flex;
   justify-content: center;
   gap: 15px;
+  flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
 .mode-switch {
@@ -333,4 +532,76 @@ button {
 
 .mode-switch input:checked + .switch-label + .switch-slider:before {
   transform: translateX(20px);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  :root {
+    --staff-line-spacing: 18px;
+    --note-scale: 1.2;
+    --treble-clef-width: 24px;
+    --bass-clef-width: 24px;
+    --staff-height: 100px;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  .piano-keyboard-horizontal {
+    height: 120px;
+  }
+  
+  .note-name {
+    font-size: 18px;
+    top: -30px;
+  }
+  
+  #settings-container {
+    padding: 10px;
+    gap: 10px;
+  }
+  
+  .mode-switch .switch-label {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --staff-line-spacing: 16px;
+    --note-scale: 1;
+    --treble-clef-width: 20px;
+    --bass-clef-width: 20px;
+    --staff-height: 80px;
+  }
+  
+  h1 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+  
+  .piano-keyboard-horizontal {
+    height: 100px;
+  }
+  
+  .black-key {
+    width: 18px;
+  }
+  
+  .note-name {
+    font-size: 16px;
+    top: -25px;
+  }
+  
+  #settings-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  button {
+    font-size: 16px;
+    padding: 8px 16px;
+  }
 }

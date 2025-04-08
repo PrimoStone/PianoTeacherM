@@ -26,28 +26,84 @@
             </label>
         </div>
         <h1>Web Piano Teacher</h1>
-        <div id="staff-container">
-            <div id="staff"></div>
-            <div id="note"></div>
-            <div id="note-name"></div>
+        <div class="music-score-container">
+            <!-- Treble Clef Staff -->
+            <div id="treble-staff-container" class="staff-container">
+                <div class="clef-symbol treble-clef"></div>
+                <div class="staff" id="treble-staff"></div>
+                <div id="treble-note" class="note"></div>
+                <div id="treble-note-name" class="note-name"></div>
+            </div>
+            
+            <!-- Bass Clef Staff -->
+            <div id="bass-staff-container" class="staff-container">
+                <div class="clef-symbol bass-clef"></div>
+                <div class="staff" id="bass-staff"></div>
+                <div id="bass-note" class="note"></div>
+                <div id="bass-note-name" class="note-name"></div>
+            </div>
         </div>
+        
         <button id="start-button">Start Listening</button>
         <div id="feedback"></div>
         <div id="debug"></div>
-        <div class="piano-keyboard">
-            <div id="key-C" class="white-key"></div>
-            <div id="key-D" class="white-key"></div>
-            <div id="key-E" class="white-key"></div>
-            <div id="key-F" class="white-key"></div>
-            <div id="key-G" class="white-key"></div>
-            <div id="key-A" class="white-key"></div>
-            <div id="key-B" class="white-key"></div>
-            <div class="black-keys">
-                <div id="key-Csharp" class="black-key"></div>
-                <div id="key-Dsharp" class="black-key"></div>
-                <div id="key-Fsharp" class="black-key"></div>
-                <div id="key-Gsharp" class="black-key"></div>
-                <div id="key-Asharp" class="black-key"></div>
+        
+        <!-- Horizontal piano keyboard with all octaves side by side -->
+        <div class="keyboard-container">
+            <div class="piano-keyboard-horizontal">
+                <!-- C3 Octave -->
+                <div class="octave" id="octave-c3">
+                    <div id="key-C3" class="white-key" data-note="C3"><span>C3</span></div>
+                    <div id="key-D3" class="white-key" data-note="D3"><span>D3</span></div>
+                    <div id="key-E3" class="white-key" data-note="E3"><span>E3</span></div>
+                    <div id="key-F3" class="white-key" data-note="F3"><span>F3</span></div>
+                    <div id="key-G3" class="white-key" data-note="G3"><span>G3</span></div>
+                    <div id="key-A3" class="white-key" data-note="A3"><span>A3</span></div>
+                    <div id="key-B3" class="white-key" data-note="B3"><span>B3</span></div>
+                    <div class="black-keys">
+                        <div id="key-C3sharp" class="black-key" data-note="C3#"></div>
+                        <div id="key-D3sharp" class="black-key" data-note="D3#"></div>
+                        <div id="key-F3sharp" class="black-key" data-note="F3#"></div>
+                        <div id="key-G3sharp" class="black-key" data-note="G3#"></div>
+                        <div id="key-A3sharp" class="black-key" data-note="A3#"></div>
+                    </div>
+                </div>
+                
+                <!-- C4 Octave (Middle C) -->
+                <div class="octave" id="octave-c4">
+                    <div id="key-C4" class="white-key" data-note="C4"><span>C4</span></div>
+                    <div id="key-D4" class="white-key" data-note="D4"><span>D4</span></div>
+                    <div id="key-E4" class="white-key" data-note="E4"><span>E4</span></div>
+                    <div id="key-F4" class="white-key" data-note="F4"><span>F4</span></div>
+                    <div id="key-G4" class="white-key" data-note="G4"><span>G4</span></div>
+                    <div id="key-A4" class="white-key" data-note="A4"><span>A4</span></div>
+                    <div id="key-B4" class="white-key" data-note="B4"><span>B4</span></div>
+                    <div class="black-keys">
+                        <div id="key-C4sharp" class="black-key" data-note="C4#"></div>
+                        <div id="key-D4sharp" class="black-key" data-note="D4#"></div>
+                        <div id="key-F4sharp" class="black-key" data-note="F4#"></div>
+                        <div id="key-G4sharp" class="black-key" data-note="G4#"></div>
+                        <div id="key-A4sharp" class="black-key" data-note="A4#"></div>
+                    </div>
+                </div>
+                
+                <!-- C5 Octave -->
+                <div class="octave" id="octave-c5">
+                    <div id="key-C5" class="white-key" data-note="C5"><span>C5</span></div>
+                    <div id="key-D5" class="white-key" data-note="D5"><span>D5</span></div>
+                    <div id="key-E5" class="white-key" data-note="E5"><span>E5</span></div>
+                    <div id="key-F5" class="white-key" data-note="F5"><span>F5</span></div>
+                    <div id="key-G5" class="white-key" data-note="G5"><span>G5</span></div>
+                    <div id="key-A5" class="white-key" data-note="A5"><span>A5</span></div>
+                    <div id="key-B5" class="white-key" data-note="B5"><span>B5</span></div>
+                    <div class="black-keys">
+                        <div id="key-C5sharp" class="black-key" data-note="C5#"></div>
+                        <div id="key-D5sharp" class="black-key" data-note="D5#"></div>
+                        <div id="key-F5sharp" class="black-key" data-note="F5#"></div>
+                        <div id="key-G5sharp" class="black-key" data-note="G5#"></div>
+                        <div id="key-A5sharp" class="black-key" data-note="A5#"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
