@@ -223,22 +223,22 @@ class StaffModel {
     
     this.bassNotePositions = {
       // Lower notes
-      'C3': linePosition1 + staffLineSpacing * 2, // C3 is two ledger lines below staff
-      'D3': linePosition1 + staffLineSpacing * 1.5, // D3 is between C3 and E3
-      'E3': linePosition1 + staffLineSpacing, // E3 is one ledger line below staff
-      'F3': linePosition1 + staffLineSpacing/2, // F3 is between E3 and G3
+      'C3': linePosition1 + staffLineSpacing, // C3 is one ledger line below staff
+      'D3': linePosition1 + staffLineSpacing/2, // D3 is between C3 and E3
+      'E3': linePosition1, // E3 is on first line
+      'F3': linePosition1 - staffLineSpacing/2, // F3 is on first space
       
       // Notes on the staff
-      'G3': linePosition1, // G3 is on first line
-      'A3': linePosition1 - staffLineSpacing/2, // A3 is on first space
-      'B3': linePosition2, // B3 is on second line
-      'C4': linePosition2 - staffLineSpacing/2, // C4 is on second space
-      'D4': linePosition3, // D4 is on third line
-      'E4': linePosition3 - staffLineSpacing/2, // E4 is on third space
-      'F4': linePosition4, // F4 is on fourth line
-      'G4': linePosition4 - staffLineSpacing/2, // G4 is on fourth space
-      'A4': linePosition5, // A4 is on fifth line
-      'B4': linePosition5 - staffLineSpacing/2, // B4 is above fifth line
+      'G3': linePosition2, // G3 is on second line
+      'A3': linePosition2 - staffLineSpacing/2, // A3 is on second space
+      'B3': linePosition3, // B3 is on third line (moved up one staff line spacing)
+      'C4': linePosition3 - staffLineSpacing/2, // C4 is on third space
+      'D4': linePosition4, // D4 is on fourth line
+      'E4': linePosition4 - staffLineSpacing/2, // E4 is on fourth space
+      'F4': linePosition5, // F4 is on fifth line
+      'G4': linePosition5 - staffLineSpacing/2, // G4 is on first space above staff
+      'A4': linePosition5 - staffLineSpacing, // A4 is one ledger line above staff
+      'B4': linePosition5 - staffLineSpacing * 1.5, // B4 is between A4 and C5
     };
   }
 
@@ -367,20 +367,6 @@ function displayNote() {
   // Add note-specific class
   noteElement.classList.add(`note-${displayNoteName}`);
   
-  // Handle stem direction based on note position on the staff
-  // Notes above the middle line have stems down, notes below have stems up
-  if (currentClef === 'treble') {
-    // For treble clef, B4 is the middle line
-    if (['C4', 'D4', 'E4', 'F4', 'G4', 'A4'].includes(currentNote)) {
-      noteElement.classList.add('rotate-note');
-    }
-  } else {
-    // For bass clef, D3 is the middle line
-    if (['G2', 'A2', 'B2', 'C3'].includes(currentNote)) {
-      noteElement.classList.add('rotate-note');
-    }
-  }
-
   // Update learning mode display
   if (staffModel.currentMode === 'learning') {
     console.log('In learning mode');
@@ -440,6 +426,9 @@ function startNoteAnimation(noteElement) {
   noteElement.style.right = '-30px';
   noteElement.style.top = `${staffModel.getNotePosition(currentNote)}px`;
   
+  // Apply proper stem direction based on note position
+  applyStemDirection(noteElement, currentNote);
+  
   // Force reflow
   noteElement.offsetHeight;
   
@@ -453,6 +442,67 @@ function startNoteAnimation(noteElement) {
     displayNote();
   }, 4000);
 }
+
+/**
+ * Applies the proper stem direction to a note based on its position on the staff
+ * Following standard music notation rules:
+ * - Notes below the middle line have stems pointing up
+ * - Notes above the middle line have stems pointing down
+ * - Notes on the middle line can go either way (default to down in this implementation)
+ */
+function applyStemDirection(noteElement, noteName) {
+  // Remove any existing rotation classes
+  noteElement.classList.remove('stem-up', 'stem-down');
+  
+  // Middle line in treble clef is B4
+  // Middle line in bass clef is D3
+  const isMiddleLineOrHigher = 
+    (currentClef === 'treble' && noteName.includes('5')) ||
+    (currentClef === 'bass' && (noteName === 'D3' || 
+                              noteName === 'E3' || 
+                              noteName === 'F3' || 
+                              noteName === 'G3' || 
+                              noteName === 'A3' || 
+                              noteName === 'B3' || 
+                              noteName.includes('4')));
+  
+  if (isMiddleLineOrHigher) {
+    // For notes on or above the middle line (B4+), stems on left side pointing down
+    noteElement.classList.add('stem-down');
+  } else {
+    // For notes below the middle line, stems on right side pointing up
+    noteElement.classList.add('stem-up');
+  }
+}
+
+function initializePianoKeys() {
+  document.querySelectorAll('.white-key, .black-key').forEach(key => {
+    key.style.cursor = 'pointer';
+    key.style.transition = 'background-color 0.3s ease';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initializePianoKeys();
+});
+
+document
+  .getElementById('start-button')
+  .addEventListener('click', () => {
+    if (!isListening) {
+      startListening();
+    } else {
+      stopListening();
+    }
+  });
+
+// Add cleanup on page unload
+window.addEventListener('beforeunload', () => {
+  releaseWakeLock();
+});
+
+// Start displaying notes
+displayNote();
 
 function startListening() {
   if (isListening) return;
@@ -699,32 +749,3 @@ function highlightKey(note) {
     console.warn("Could not find key element with ID:", keyId);
   }
 }
-
-function initializePianoKeys() {
-  document.querySelectorAll('.white-key, .black-key').forEach(key => {
-    key.style.cursor = 'pointer';
-    key.style.transition = 'background-color 0.3s ease';
-  });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  initializePianoKeys();
-});
-
-document
-  .getElementById('start-button')
-  .addEventListener('click', () => {
-    if (!isListening) {
-      startListening();
-    } else {
-      stopListening();
-    }
-  });
-
-// Add cleanup on page unload
-window.addEventListener('beforeunload', () => {
-  releaseWakeLock();
-});
-
-// Start displaying notes
-displayNote();

@@ -198,12 +198,41 @@ h1 {
   transform-origin: bottom center;
 }
 
-#bass-note.note::after {
-  bottom: auto;
-  top: 12px;
-  transform: translateX(-50%) rotate(180deg);
+/* Note stem direction styles following standard music notation */
+/* Notes below the middle line have stems pointing down (from right side) */
+.note.stem-up::after {
+  bottom: 12px;
+  top: auto;
+  height: var(--note-stem-height);
+  left: 90%; /* Stem on right side */
+  transform: translateX(-50%);
 }
 
+/* Notes on or above the middle line have stems pointing up (from left side) */
+.note.stem-down::after {
+  bottom: auto;
+  top: 12px;
+  height: var(--note-stem-height);
+  left: 10%; /* Stem on left side */
+  transform: translateX(-50%);
+}
+
+/* Bass clef specific adjustments if needed */
+#bass-note.note.stem-up::after {
+  bottom: auto;
+  top: 12px;
+  left: 90%; /* Stem on right side */
+  transform: translateX(-50%);
+}
+
+#bass-note.note.stem-down::after {
+  bottom: 12px;
+  top: auto;
+  left: 10%; /* Stem on left side */
+  transform: translateX(-50%);
+}
+
+/* Legacy classes - keeping for compatibility but not using them anymore */
 #bass-note.note.rotate-note {
   transform: scale(var(--note-scale));
 }
