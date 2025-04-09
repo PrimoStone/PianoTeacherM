@@ -209,6 +209,18 @@ h1 {
   transform: translateY(-50%);
 }
 
+#bass-note.note-C4::before {
+  content: '';
+  position: absolute;
+  width: 120%;
+  height: var(--note-stem-width);
+  background-color: var(--note-color);
+  top: 50%;
+  left: -10%;
+  display: block;
+  transform: translateY(-50%);
+}
+
 .note.note-B {
   transform: scale(var(--note-scale)) rotate(180deg);
   transition: transform 0.3s ease;
