@@ -460,88 +460,84 @@ button:hover {
 
 /* Responsive adjustments for the horizontal keyboard */
 @media (max-width: 768px) {
+  :root {
+    --staff-line-spacing: 18px;
+    --note-scale: 1.2;
+    --treble-clef-width: 24px;
+    --bass-clef-width: 24px;
+    --staff-height: 140px;
+    --staff-top-margin: 30px;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
   .piano-keyboard-horizontal {
     height: 120px;
   }
   
-  .octave {
-    width: 175px;
+  .note-name {
+    font-size: 18px;
+    top: -30px;
   }
   
-  .white-key {
-    width: 25px;
+  #settings-container {
+    padding: 10px;
+    gap: 10px;
   }
   
-  .black-key {
-    width: 16px;
+  .mode-switch .switch-label {
+    font-size: 12px;
   }
   
-  #octave-c2 #key-C2sharp { left: 17px; }
-  #octave-c2 #key-D2sharp { left: 42px; }
-  #octave-c2 #key-F2sharp { left: 92px; }
-  #octave-c2 #key-G2sharp { left: 117px; }
-  #octave-c2 #key-A2sharp { left: 142px; }
-  
-  #octave-c3 #key-C3sharp { left: 17px; }
-  #octave-c3 #key-D3sharp { left: 42px; }
-  #octave-c3 #key-F3sharp { left: 92px; }
-  #octave-c3 #key-G3sharp { left: 117px; }
-  #octave-c3 #key-A3sharp { left: 142px; }
-  
-  #octave-c4 #key-C4sharp { left: 17px; }
-  #octave-c4 #key-D4sharp { left: 42px; }
-  #octave-c4 #key-F4sharp { left: 92px; }
-  #octave-c4 #key-G4sharp { left: 117px; }
-  #octave-c4 #key-A4sharp { left: 142px; }
-  
-  #octave-c5 #key-C5sharp { left: 17px; }
-  #octave-c5 #key-D5sharp { left: 42px; }
-  #octave-c5 #key-F5sharp { left: 92px; }
-  #octave-c5 #key-G5sharp { left: 117px; }
-  #octave-c5 #key-A5sharp { left: 142px; }
+  .staff-container {
+    overflow: visible;
+  }
 }
 
 @media (max-width: 480px) {
+  :root {
+    --staff-line-spacing: 16px;
+    --note-scale: 1;
+    --treble-clef-width: 20px;
+    --bass-clef-width: 20px;
+    --staff-height: 120px;
+    --staff-top-margin: 25px;
+  }
+  
+  h1 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+  
   .piano-keyboard-horizontal {
     height: 100px;
   }
   
-  .octave {
-    width: 140px;
-  }
-  
-  .white-key {
-    width: 20px;
-    font-size: 8px;
-  }
-  
   .black-key {
-    width: 12px;
+    width: 18px;
   }
   
-  #octave-c2 #key-C2sharp { left: 14px; }
-  #octave-c2 #key-D2sharp { left: 34px; }
-  #octave-c2 #key-F2sharp { left: 74px; }
-  #octave-c2 #key-G2sharp { left: 94px; }
-  #octave-c2 #key-A2sharp { left: 114px; }
+  .note-name {
+    font-size: 16px;
+    top: -25px;
+  }
   
-  #octave-c3 #key-C3sharp { left: 14px; }
-  #octave-c3 #key-D3sharp { left: 34px; }
-  #octave-c3 #key-F3sharp { left: 74px; }
-  #octave-c3 #key-G3sharp { left: 94px; }
-  #octave-c3 #key-A3sharp { left: 114px; }
+  #settings-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
   
-  #octave-c4 #key-C4sharp { left: 14px; }
-  #octave-c4 #key-D4sharp { left: 34px; }
-  #octave-c4 #key-F4sharp { left: 74px; }
-  #octave-c4 #key-G4sharp { left: 94px; }
-  #octave-c4 #key-A4sharp { left: 114px; }
+  button {
+    font-size: 16px;
+    padding: 8px 16px;
+  }
   
-  #octave-c5 #key-C5sharp { left: 14px; }
-  #octave-c5 #key-D5sharp { left: 34px; }
-  #octave-c5 #key-F5sharp { left: 74px; }
-  #octave-c5 #key-G5sharp { left: 94px; }
-  #octave-c5 #key-A5sharp { left: 114px; }
+  .staff-container {
+    margin-bottom: 10px;
+  }
 }
 
 /* Keep existing styles for highlighted, learning-highlight, etc. */
@@ -653,7 +649,8 @@ button:hover {
     --note-scale: 1.2;
     --treble-clef-width: 24px;
     --bass-clef-width: 24px;
-    --staff-height: 100px;
+    --staff-height: 140px;
+    --staff-top-margin: 30px;
   }
   
   h1 {
@@ -677,6 +674,10 @@ button:hover {
   .mode-switch .switch-label {
     font-size: 12px;
   }
+  
+  .staff-container {
+    overflow: visible;
+  }
 }
 
 @media (max-width: 480px) {
@@ -685,7 +686,8 @@ button:hover {
     --note-scale: 1;
     --treble-clef-width: 20px;
     --bass-clef-width: 20px;
-    --staff-height: 80px;
+    --staff-height: 120px;
+    --staff-top-margin: 25px;
   }
   
   h1 {
@@ -715,6 +717,10 @@ button:hover {
   button {
     font-size: 16px;
     padding: 8px 16px;
+  }
+  
+  .staff-container {
+    margin-bottom: 10px;
   }
 }
 
