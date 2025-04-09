@@ -170,6 +170,34 @@ h1 {
 }
 
 .note.note-C::before {
+  content: none; /* Remove ledger line by default */
+}
+
+#treble-note.note-C4::before {
+  content: '';
+  position: absolute;
+  width: 120%;
+  height: var(--note-stem-width);
+  background-color: var(--note-color);
+  top: 50%;
+  left: -10%;
+  display: block;
+  transform: translateY(-50%);
+}
+
+#treble-note.note-A5::before {
+  content: '';
+  position: absolute;
+  width: 120%;
+  height: var(--note-stem-width);
+  background-color: var(--note-color);
+  top: 50%;
+  left: -10%;
+  display: block;
+  transform: translateY(-50%);
+}
+
+#treble-note.note-B5::before {
   content: '';
   position: absolute;
   width: 120%;
@@ -232,8 +260,7 @@ h1 {
 #bass-note.note-E3::after,
 #bass-note.note-F3::after,
 #bass-note.note-G3::after,
-#bass-note.note-A3::after,
-#bass-note.note-B3::after {
+#bass-note.note-A3::after {
   bottom: auto !important;
   top: 12px !important;
   height: var(--note-stem-height);
@@ -241,13 +268,36 @@ h1 {
   transform: translateX(-50%);
 }
 
-/* B3 special case - ensure it's included */
+/* B3 stem direction fix - pointing UP from left side */
 #bass-note.note-B3::after {
-  bottom: auto !important;
+  content: '' !important;
+  position: absolute !important;
+  width: var(--note-stem-width) !important;
+  height: var(--note-stem-height) !important;
+  background-color: var(--note-color) !important;
+  bottom: auto !important; /* Stem points UP */
   top: 12px !important;
-  height: var(--note-stem-height);
+  left: 10% !important; /* Stem on LEFT side */
+  transform: translateX(-50%) !important;
+  transform-origin: bottom center !important;
+}
+
+#treble-note.note-B5::after {
+  content: '' !important;
+  position: absolute !important;
+  width: var(--note-stem-width) !important;
+  height: var(--note-stem-height) !important;
+  background-color: var(--note-color) !important;
+  bottom: 12px !important;
+  top: auto !important;
   left: 10% !important; /* Stem on left side */
-  transform: translateX(-50%);
+  transform: translateX(-50%) !important;
+  transform-origin: bottom center !important;
+}
+
+/* Override the rotation for B notes but don't affect animation */
+#bass-note.note-B3, #treble-note.note-B5 {
+  transform: scale(var(--note-scale)) !important;
 }
 
 /* Legacy classes - keeping for compatibility but not using them anymore */

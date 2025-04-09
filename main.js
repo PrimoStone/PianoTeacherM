@@ -443,6 +443,13 @@ function startNoteAnimation(noteElement) {
   noteElement.style.transition = 'right 4s linear';
   noteElement.style.right = '100%';
   
+  // Special handling for B3 and B5 notes to ensure animation works
+  if (currentNote === 'B3' || currentNote === 'B5') {
+    console.log(`Special animation handling for ${currentNote}`);
+    // Make sure the animation property isn't being overridden
+    noteElement.style.transition = 'right 4s linear !important';
+  }
+  
   // Set timer for next note
   animationTimer = setTimeout(() => {
     isAnimating = false;
@@ -483,6 +490,13 @@ function clearNoteAnimation() {
 function applyStemDirection(noteElement, noteName) {
   // Remove any existing rotation classes
   noteElement.classList.remove('stem-up', 'stem-down');
+  
+  // Special cases for B3 and B5 which need to be handled separately
+  if (noteName === 'B3' || noteName === 'B5') {
+    // Don't add any stem classes for these notes, they're handled via CSS
+    // This prevents conflicting styles
+    return;
+  }
   
   // For treble clef: notes below C5 have stems on right side (unchanged)
   // For bass clef: C3 has stem on right side pointing up, D3 and above have stems on left side pointing down
