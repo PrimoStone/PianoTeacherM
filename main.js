@@ -415,6 +415,9 @@ function displayNote() {
     });
   }
   
+  // Center the keyboard on the appropriate octave
+  centerKeyboardOnNote(currentNote);
+  
   // Start continuous animation
   startNoteAnimation(noteElement);
 }
@@ -786,4 +789,74 @@ function highlightKey(note) {
   } else {
     console.warn("Could not find key element with ID:", keyId);
   }
+}
+
+/**
+ * Centers the keyboard on the appropriate octave based on the current note
+ * @param {string} note - The current note (e.g., 'C3', 'D4', 'E5')
+ */
+function centerKeyboardOnNote(note) {
+  // Extract the octave from the note
+  const octave = note.slice(-1);
+  const keyboardContainer = document.querySelector('.keyboard-container');
+  
+  // Get the octave element
+  const octaveElement = document.getElementById(`octave-c${octave}`);
+  if (!octaveElement || !keyboardContainer) return;
+  
+  // Calculate the scroll position to center the octave
+  const containerWidth = keyboardContainer.clientWidth;
+  const octaveWidth = octaveElement.clientWidth;
+  const octaveLeft = octaveElement.offsetLeft;
+  
+  let scrollPosition;
+  
+  // Special handling for C3 octave to ensure it's fully visible
+  if (octave === '3') {
+    // For C3, align to the left edge of the container with a small padding
+    scrollPosition = Math.max(0, octaveLeft - 10);
+  } else if (octave === '5') {
+    // For C5, ensure it's fully visible on the right
+    const pianoKeyboard = document.querySelector('.piano-keyboard-horizontal');
+    const keyboardWidth = pianoKeyboard ? pianoKeyboard.clientWidth : 0;
+    
+    // Calculate position that would show the entire C5 octave
+    scrollPosition = Math.min(
+      keyboardWidth - containerWidth,
+      octaveLeft + octaveWidth - containerWidth + 10
+    );
+  } else {
+    // For C4 (middle octave), center it
+    scrollPosition = octaveLeft - (containerWidth / 2) + (octaveWidth / 2);
+  }
+  
+  // Ensure scroll position is never negative
+  scrollPosition = Math.max(0, scrollPosition);
+  
+  // Scroll the container with smooth animation
+  keyboardContainer.scrollTo({
+    left: scrollPosition,
+    behavior: 'smooth'
+  });
+}
+    // For C4 (middle octave), center it
+    scrollPosition = octaveLeft - (containerWidth / 2) + (octaveWidth / 2);
+  }
+  
+  // Ensure scroll position is never negative
+  scrollPosition = Math.max(0, scrollPosition);
+  
+  // Scroll the container with smooth animation
+  keyboardContainer.scrollTo({
+    left: scrollPosition,
+    behavior: 'smooth'
+  });
+  
+  // Debug log to help diagnose positioning issues
+  console.log(`Scrolling to octave ${octave}:`, {
+    octaveLeft,
+    octaveWidth,
+    containerWidth,
+    scrollPosition
+  });
 }
