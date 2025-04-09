@@ -376,12 +376,14 @@ button:hover {
   margin: 20px auto;
   overflow-x: auto;
   padding-bottom: 10px;
+  display: flex;
+  justify-content: center;
 }
 
 .piano-keyboard-horizontal {
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
+  justify-content: center; /* Center the keyboard */
   width: max-content;
   margin: 0 auto;
   position: relative;
@@ -393,6 +395,11 @@ button:hover {
   display: flex;
   width: 210px; /* Width of 7 white keys */
   height: 100%;
+}
+
+/* Highlight middle C octave */
+#octave-c4 {
+  border-bottom: 3px solid var(--settings-active-color);
 }
 
 .white-key {
@@ -495,6 +502,34 @@ button:hover {
   .staff-container {
     overflow: visible;
   }
+  
+  /* Adjust keyboard for tablet view */
+  .octave {
+    width: 175px;
+  }
+  
+  .white-key {
+    width: 25px;
+  }
+  
+  /* Adjust black key positions for tablet */
+  #octave-c3 #key-C3sharp { left: 17px; }
+  #octave-c3 #key-D3sharp { left: 42px; }
+  #octave-c3 #key-F3sharp { left: 92px; }
+  #octave-c3 #key-G3sharp { left: 117px; }
+  #octave-c3 #key-A3sharp { left: 142px; }
+  
+  #octave-c4 #key-C4sharp { left: 17px; }
+  #octave-c4 #key-D4sharp { left: 42px; }
+  #octave-c4 #key-F4sharp { left: 92px; }
+  #octave-c4 #key-G4sharp { left: 117px; }
+  #octave-c4 #key-A4sharp { left: 142px; }
+  
+  #octave-c5 #key-C5sharp { left: 17px; }
+  #octave-c5 #key-D5sharp { left: 42px; }
+  #octave-c5 #key-F5sharp { left: 92px; }
+  #octave-c5 #key-G5sharp { left: 117px; }
+  #octave-c5 #key-A5sharp { left: 142px; }
 }
 
 @media (max-width: 480px) {
@@ -518,7 +553,7 @@ button:hover {
   }
   
   .black-key {
-    width: 18px;
+    width: 16px;
   }
   
   .note-name {
@@ -545,6 +580,35 @@ button:hover {
   .note {
     transform: scale(var(--note-scale));
   }
+  
+  /* Adjust keyboard for mobile view */
+  .octave {
+    width: 140px;
+  }
+  
+  .white-key {
+    width: 20px;
+    font-size: 8px;
+  }
+  
+  /* Adjust black key positions for mobile */
+  #octave-c3 #key-C3sharp { left: 14px; }
+  #octave-c3 #key-D3sharp { left: 34px; }
+  #octave-c3 #key-F3sharp { left: 74px; }
+  #octave-c3 #key-G3sharp { left: 94px; }
+  #octave-c3 #key-A3sharp { left: 114px; }
+  
+  #octave-c4 #key-C4sharp { left: 14px; }
+  #octave-c4 #key-D4sharp { left: 34px; }
+  #octave-c4 #key-F4sharp { left: 74px; }
+  #octave-c4 #key-G4sharp { left: 94px; }
+  #octave-c4 #key-A4sharp { left: 114px; }
+  
+  #octave-c5 #key-C5sharp { left: 14px; }
+  #octave-c5 #key-D5sharp { left: 34px; }
+  #octave-c5 #key-F5sharp { left: 74px; }
+  #octave-c5 #key-G5sharp { left: 94px; }
+  #octave-c5 #key-A5sharp { left: 114px; }
 }
 
 /* Keep existing styles for highlighted, learning-highlight, etc. */
