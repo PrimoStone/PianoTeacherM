@@ -467,6 +467,7 @@ button:hover {
     --bass-clef-width: 24px;
     --staff-height: 140px;
     --staff-top-margin: 30px;
+    --note-position-adjust: 0px; /* No adjustment needed for tablets */
   }
   
   h1 {
@@ -504,6 +505,7 @@ button:hover {
     --bass-clef-width: 20px;
     --staff-height: 120px;
     --staff-top-margin: 25px;
+    --note-position-adjust: 0px; /* Reset to no adjustment */
   }
   
   h1 {
@@ -537,6 +539,11 @@ button:hover {
   
   .staff-container {
     margin-bottom: 10px;
+  }
+  
+  /* Remove the transform that was shifting notes up */
+  .note {
+    transform: scale(var(--note-scale));
   }
 }
 
