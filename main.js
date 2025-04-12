@@ -838,19 +838,6 @@ function centerKeyboardOnNote(note) {
     left: scrollPosition,
     behavior: 'smooth'
   });
-}
-    // For C4 (middle octave), center it
-    scrollPosition = octaveLeft - (containerWidth / 2) + (octaveWidth / 2);
-  }
-  
-  // Ensure scroll position is never negative
-  scrollPosition = Math.max(0, scrollPosition);
-  
-  // Scroll the container with smooth animation
-  keyboardContainer.scrollTo({
-    left: scrollPosition,
-    behavior: 'smooth'
-  });
   
   // Debug log to help diagnose positioning issues
   console.log(`Scrolling to octave ${octave}:`, {
