@@ -849,8 +849,9 @@ function centerKeyboardOnNote(note) {
   
   // Special handling for C3 octave to ensure it's fully visible
   if (octave === '3') {
-    // For C3, align to the left edge of the container with a small padding
-    scrollPosition = Math.max(0, octaveLeft - 10);
+    // For C3, ensure we're at the very beginning of the keyboard
+    // Set to 0 to ensure the first key (C3) is fully visible
+    scrollPosition = 0;
   } else if (octave === '5') {
     // For C5, ensure it's fully visible on the right
     const pianoKeyboard = document.querySelector('.piano-keyboard-horizontal');
