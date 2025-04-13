@@ -584,12 +584,16 @@ function startListening() {
       
       // Optimize for continuous processing
       if (isMobile) {
-        analyser.fftSize = 256;
+        analyser.fftSize = 1024; // Increased from 256 for better low-frequency resolution
         analyser.smoothingTimeConstant = 0.4;
       } else {
-        analyser.fftSize = 2048;
+        analyser.fftSize = 4096; // Increased from 2048 for better low-frequency resolution
         analyser.smoothingTimeConstant = 0.8;
       }
+      
+      // Set frequency range to capture lower frequencies better
+      analyser.minDecibels = -100; // Lower threshold to capture quieter sounds (default is -100)
+      analyser.maxDecibels = -30;  // Upper threshold (default is -30)
       
       console.log('Analyzer settings:', {
         fftSize: analyser.fftSize,
@@ -645,13 +649,15 @@ function startPitchDetection() {
   
   // Define frequency ranges for each octave to help with accurate detection
   const octaveRanges = {
-    3: { min: 125, max: 250 },   // C3-B3 range (approx)
-    4: { min: 250, max: 500 },   // C4-B4 range (approx)
-    5: { min: 500, max: 1000 }   // C5-B5 range (approx)
+    3: { min: 110, max: 250 },   // C3-B3 range (lowered min to include C3 at 130.81Hz with margin)
+    4: { min: 250, max: 500 },   // C4-B4 range
+    5: { min: 500, max: 1000 }   // C5-B5 range
   };
   
   // Helper function to determine the most likely octave based on frequency
   function getOctaveFromFrequency(freq) {
+    // Improved detection for lower frequencies
+    if (freq < 130) return 3; // Force to octave 3 for very low frequencies (C3 is 130.81Hz)
     if (freq < octaveRanges[4].min) return 3;
     if (freq < octaveRanges[5].min) return 4;
     return 5;
@@ -668,26 +674,56 @@ function startPitchDetection() {
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       const [pitch, clarity] = detector.findPitch(buffer, audioContext.sampleRate);
       
-      const clarityThreshold = isMobile ? 0.65 : 0.8;
+      // Lower clarity threshold for bass notes
+      const bassClarityThreshold = isMobile ? 0.55 : 0.7;
+      const trebleClarityThreshold = isMobile ? 0.65 : 0.8;
+      
+      // Determine if we're in bass clef and potentially dealing with lower notes
+      const inBassClef = staffModel.currentClef === 'bass';
+      const clarityThreshold = inBassClef ? bassClarityThreshold : trebleClarityThreshold;
       
       if (clarity >= clarityThreshold) {
         let detectedNote = null;
         let minDiff = Infinity;
-        const maxDiff = isMobile ? 40 : 15;
-
+        
+        // Increase tolerance for lower frequencies
+        const baseTolerance = isMobile ? 45 : 20;
+        
         // Debug output
-        console.log("Detected pitch:", pitch);
+        console.log("Detected pitch:", pitch, "Clarity:", clarity.toFixed(2));
         
         // Determine the likely octave based on the frequency
         const likelyOctave = getOctaveFromFrequency(pitch);
         console.log("Likely octave:", likelyOctave);
         
+        // Create a map of notes to check with their custom tolerances
+        const notesToCheck = {};
+        
+        // If we're in bass clef, prioritize bass notes with higher tolerance
+        if (inBassClef) {
+          // Add all bass notes with appropriate tolerances
+          for (const note of staffModel.bassNotes) {
+            const freq = staffModel.frequencies[note];
+            // Higher tolerance for lower notes
+            const noteTolerance = note.startsWith('C3') || note.startsWith('D3') || 
+                                  note.startsWith('E3') || note.startsWith('F3') || 
+                                  note.startsWith('G3') ? baseTolerance * 2 : 
+                                  note.startsWith('A3') || note.startsWith('B3') ? baseTolerance * 1.5 : 
+                                  baseTolerance;
+            notesToCheck[note] = { freq, tolerance: noteTolerance };
+          }
+        } else {
+          // For treble clef, use standard tolerance
+          for (const note of staffModel.trebleNotes) {
+            notesToCheck[note] = { freq: staffModel.frequencies[note], tolerance: baseTolerance };
+          }
+        }
+        
         // First try to find a match within the likely octave
-        for (const [note, freq] of Object.entries(staffModel.frequencies)) {
-          // Only consider notes in the likely octave
+        for (const [note, { freq, tolerance }] of Object.entries(notesToCheck)) {
           if (note.includes(likelyOctave.toString())) {
             const diff = Math.abs(pitch - freq);
-            if (diff < minDiff && diff < maxDiff) {
+            if (diff < minDiff && diff < tolerance) {
               minDiff = diff;
               detectedNote = note;
             }
@@ -697,9 +733,9 @@ function startPitchDetection() {
         // If no match found in the likely octave, try all notes
         if (!detectedNote) {
           minDiff = Infinity;
-          for (const [note, freq] of Object.entries(staffModel.frequencies)) {
+          for (const [note, { freq, tolerance }] of Object.entries(notesToCheck)) {
             const diff = Math.abs(pitch - freq);
-            if (diff < minDiff && diff < maxDiff) {
+            if (diff < minDiff && diff < tolerance) {
               minDiff = diff;
               detectedNote = note;
             }
@@ -707,7 +743,7 @@ function startPitchDetection() {
         }
 
         if (detectedNote) {
-          console.log("Mapped to note:", detectedNote);
+          console.log("Mapped to note:", detectedNote, "with difference:", minDiff.toFixed(2));
           checkNote(detectedNote);
           highlightKey(detectedNote);
         }
