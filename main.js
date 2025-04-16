@@ -491,30 +491,41 @@ function clearNoteAnimation() {
  * - Notes on the middle line can go either way (default to down in this implementation)
  */
 function applyStemDirection(noteElement, noteName) {
-  // Remove any existing rotation classes
-  noteElement.classList.remove('stem-up', 'stem-down');
-  
-  // Special cases for B3 and B5 which need to be handled separately
-  if (noteName === 'B3' || noteName === 'B5') {
-    // Don't add any stem classes for these notes, they're handled via CSS
-    // This prevents conflicting styles
-    return;
-  }
-  
-  // For treble clef: notes below C5 have stems on right side (unchanged)
-  // For bass clef: C3 has stem on right side pointing up, D3 and above have stems on left side pointing down
-  const isMiddleLineOrHigher = 
-    (currentClef === 'treble' && noteName.includes('5')) ||
-    (currentClef === 'bass' && noteName !== 'C3');
-  
-  if (isMiddleLineOrHigher) {
-    // For notes on or above the middle line (B4+), stems on left side pointing down
-    noteElement.classList.add('stem-down');
-  } else {
-    // For notes below the middle line, stems on right side pointing up
-    noteElement.classList.add('stem-up');
+  // Always remove both classes first to avoid conflicts
+  noteElement.classList.remove('stem-up');
+  noteElement.classList.remove('stem-down');
+
+  // No stem for rests, or for notes without a valid name
+  if (!noteName || noteName.includes('rest')) return;
+
+  // For treble clef: notes B4 and above (B4, C5, D5, ...) have stems down (left)
+  // For bass clef: C3 has stem up (right), all others stem down (left)
+  const currentClef = staffModel.currentClef;
+
+  // Determine octave and note letter
+  const letter = noteName[0];
+  const octave = parseInt(noteName.slice(-1), 10);
+
+  // Guarantee that only one stem direction class is ever present
+  if (currentClef === 'treble') {
+    // B4 and above: stem down; below B4: stem up
+    if (
+      (octave > 4) || (octave === 4 && letter === 'B')
+    ) {
+      noteElement.classList.add('stem-down'); // Stem down for B4, C5, D5, ...
+    } else {
+      noteElement.classList.add('stem-up'); // Stem up for notes below B4
+    }
+  } else if (currentClef === 'bass') {
+    // For bass clef: C3 has stem up (right), all others stem down (left)
+    if (noteName === 'C3') {
+      noteElement.classList.add('stem-up');
+    } else {
+      noteElement.classList.add('stem-down');
+    }
   }
 }
+
 
 function initializePianoKeys() {
   document.querySelectorAll('.white-key, .black-key').forEach(key => {

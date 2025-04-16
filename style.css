@@ -84,7 +84,7 @@ h1 {
   width: var(--staff-width);
   height: var(--staff-height);
   margin: 0 auto;
-  overflow: hidden;
+  overflow: visible;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -169,6 +169,7 @@ h1 {
   transition: color 0.3s ease;
   z-index: 1;
   margin-top: calc(-1 * var(--note-height) / 2); /* Center the note vertically at its position */
+  overflow: visible;
 }
 
 .note.note-C::before {
@@ -241,17 +242,46 @@ h1 {
 }
 
 /* Note stem direction styles following standard music notation */
+
+/* Special rule for B5: ensure stem is longer and visible */
+.note-B5.stem-down::after {
+  content: "" !important;
+  position: absolute !important;
+  width: var(--note-stem-width) !important;
+  height: calc(var(--note-stem-height) * 1.5) !important;
+  background: var(--note-color) !important;
+  left: 10% !important;
+  top: 0 !important;
+  bottom: auto !important;
+  z-index: 2 !important;
+}
+/* Hide up stem if both classes are present (conflict fix) */
+.note-B5.stem-down.stem-up::after {
+  display: none !important;
+}
+
+
 /* Notes below the middle line have stems pointing down (from right side) */
 .note.stem-up::after {
   bottom: 12px;
   top: auto;
   height: var(--note-stem-height);
-  left: 90%; /* Stem on right side */
+  left: 90%; /* Stem on right side for stem-up notes */
   transform: translateX(-50%);
+}
+
+.note.stem-down::after {
+  top: 0;
+  bottom: auto;
+  height: var(--note-stem-height);
+  left: 10%; /* Stem on left side for stem-down notes */
+  transform: translateX(0);
+  /* All stem-down notes, including B5, stem attaches to left */
 }
 
 /* Notes on or above the middle line have stems pointing up (from left side) */
 .note.stem-down::after {
+  top: 0;
   bottom: auto;
   top: 12px;
   height: var(--note-stem-height);
@@ -309,11 +339,8 @@ h1 {
   transform-origin: bottom center !important;
 }
 
-/* Override the rotation for B notes but don't affect animation */
-#bass-note.note-B3, #treble-note.note-B5 {
-  transform: scale(var(--note-scale)) !important;
-}
-
+/
+/*  */
 /* Legacy classes - keeping for compatibility but not using them anymore */
 #bass-note.note.rotate-note {
   transform: scale(var(--note-scale));
