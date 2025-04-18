@@ -243,22 +243,7 @@ h1 {
 
 /* Note stem direction styles following standard music notation */
 
-/* Special rule for B5: ensure stem is longer and visible */
-.note-B5.stem-down::after {
-  content: "" !important;
-  position: absolute !important;
-  width: var(--note-stem-width) !important;
-  height: calc(var(--note-stem-height) * 1.5) !important;
-  background: var(--note-color) !important;
-  left: 10% !important;
-  top: 0 !important;
-  bottom: auto !important;
-  z-index: 2 !important;
-}
-/* Hide up stem if both classes are present (conflict fix) */
-.note-B5.stem-down.stem-up::after {
-  display: none !important;
-}
+/* [REMOVED] B5-specific style rules. B5 now uses the universal .note and .stem-down styles for consistent stem rendering. */
 
 
 /* Notes below the middle line have stems pointing down (from right side) */
@@ -270,22 +255,12 @@ h1 {
   transform: translateX(-50%);
 }
 
+/* Single universal rule for all stem-down notes. Ensures stem is always on left. */
 .note.stem-down::after {
-  top: 0;
-  bottom: auto;
-  height: var(--note-stem-height);
-  left: 10%; /* Stem on left side for stem-down notes */
-  transform: translateX(0);
-  /* All stem-down notes, including B5, stem attaches to left */
-}
-
-/* Notes on or above the middle line have stems pointing up (from left side) */
-.note.stem-down::after {
-  top: 0;
-  bottom: auto;
   top: 12px;
+  bottom: auto;
   height: var(--note-stem-height);
-  left: 10%; /* Stem on left side */
+  left: 10% !important; /* Stem on left side for all stem-down notes */
   transform: translateX(-50%);
 }
 
@@ -326,20 +301,9 @@ h1 {
   transform-origin: bottom center !important;
 }
 
-#treble-note.note-B5::after {
-  content: '' !important;
-  position: absolute !important;
-  width: var(--note-stem-width) !important;
-  height: var(--note-stem-height) !important;
-  background-color: var(--note-color) !important;
-  bottom: 12px !important;
-  top: auto !important;
-  left: 10% !important; /* Stem on left side */
-  transform: translateX(-50%) !important;
-  transform-origin: bottom center !important;
-}
+/* [REMOVED] B5-specific after rule. Now B5 uses only .note.stem-down::after for stem positioning. */
 
-/
+
 /*  */
 /* Legacy classes - keeping for compatibility but not using them anymore */
 #bass-note.note.rotate-note {

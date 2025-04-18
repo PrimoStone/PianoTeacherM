@@ -368,8 +368,8 @@ function displayNote() {
   // Get display name (just the note letter)
   const displayNoteName = staffModel.getNoteDisplayName(currentNote);
   
-  // Add note-specific class
-  noteElement.classList.add(`note-${displayNoteName}`);
+  // Add note-specific class (full note name, e.g. note-B5)
+  noteElement.classList.add(`note-${currentNote}`);
   
   // Update learning mode display
   if (staffModel.currentMode === 'learning') {
