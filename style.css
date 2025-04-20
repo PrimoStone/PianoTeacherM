@@ -176,6 +176,14 @@ h1 {
   content: none; /* Remove ledger line by default */
 }
 
+/*
+  Force C4 note on treble staff to appear at exactly 160px from the top, overriding all other rules.
+  This ensures the fixed position is always respected regardless of variable-based or inherited styles.
+*/
+#treble-note.note-C4 {
+  top: 160px !important;
+}
+
 #treble-note.note-C4::before {
   content: '';
   position: absolute;

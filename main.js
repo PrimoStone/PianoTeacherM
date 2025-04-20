@@ -200,7 +200,7 @@ class StaffModel {
       'F4': linePosition3 + staffLineSpacing*1.5, // F4 is on first space
       'E4': linePosition3 + staffLineSpacing*2, // E4 is on first line
       'D4': linePosition3 + staffLineSpacing*2.5, // D4 is between staff and ledger line
-      'C4': linePosition3 + staffLineSpacing*3, // C4 is on first ledger line below the staff
+      'C4': 160, // C4 is on first ledger line below the staff (fixed position as requested by user, overrides variable calculation)
     };
   }
 
